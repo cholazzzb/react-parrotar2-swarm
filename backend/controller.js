@@ -1,18 +1,20 @@
 import socketIOClient from "socket.io-client";
 import * as arDrone from "ar-drone";
 import arDroneConstants from "ar-drone/lib/constants.js";
+import autonomy from "ardrone-autonomy";
 
 console.log("CONNECTING...");
 var quadrotor = arDrone.createClient();
+var control = new autonomy.Controller(quadrotor);
 function navdata_option_mask(c) {
   return 1 << c;
 }
 
 // From the SDK.
 // var default_navdata_options =
-//   navdata_option_mask(arDroneConstants.options.DEMO) 
-  // |
-  // navdata_option_mask(arDroneConstants.options.VISION_DETECT);
+//   navdata_option_mask(arDroneConstants.options.DEMO)
+// |
+// navdata_option_mask(arDroneConstants.options.VISION_DETECT);
 // Enable the magnetometer data.
 // quadrotor.config(
 //   "general:navdata_options",
@@ -27,6 +29,7 @@ console.log("SUCCESS CONNECTING");
 const SOCKET_SERVER_URL = "http://localhost:4000";
 const NAVDATA_EVENT = "NAVDATA_EVENT";
 const COMMAND_EVENT = "COMMAND_EVENT";
+const EKF_EVENT = "EKF_EVENT";
 
 const connectionCommand = socketIOClient(SOCKET_SERVER_URL, {
   query: "COMMAND",
@@ -34,7 +37,7 @@ const connectionCommand = socketIOClient(SOCKET_SERVER_URL, {
 
 // COMMAND
 connectionCommand.on(COMMAND_EVENT, (data) => {
-  console.log("---INCOMING DATA---");
+  console.log("---INCOMING COMMAND---");
   console.log("type", data.type);
   console.log("data", data.body);
 
@@ -61,8 +64,10 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
             console.log("TAKEOFF...");
             quadrotor.takeoff();
             console.log("TAKEOFF SUCCESS!");
-            console.log('CALIBRATING GPS')
-            quadrotor.calibrate(0)
+            quadrotor.after(5000, () => {
+              console.log("CALIBRATING POSITION");
+              control.zero();
+            });
           } catch (error) {
             quadrotor.after(100, () => {
               this.stop();
@@ -87,6 +92,18 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
           }
           break;
 
+        case "FORWARD1":
+          try {
+            console.log("MOVING FORWARD 1m ");
+            control.forward(1);
+          } catch (error) {
+            quadrotor.after(100, () => {
+              this.stop();
+              this.land();
+            });
+            console.error("ERROR WHEN FORWARD1!");
+          }
+
         default:
           break;
       }
@@ -103,14 +120,7 @@ const connectionNavData = socketIOClient(SOCKET_SERVER_URL, {
 });
 
 // NAVDATA
-var demo,
-  rawMeasures,
-  physMeasures,
-  eulerAngles,
-  references,
-  pwm,
-  windSpeed,
-  kalmanPressure;
+var demo;
 
 var droneState = {
   time: 0,
@@ -123,15 +133,11 @@ var droneState = {
   battery: 0,
 };
 
-var time = 1;
 var timeInitial = new Date().getTime();
+var time = 1;
 
 quadrotor.on("navdata", (navdata) => {
   if (navdata !== undefined) {
-    console.log("HEADING ??", navdata?.magneto?.heading?.fusionUnwrapped)
-    // console.log("CARI GPS", navdata.gps);
-    console.log("CARI GPS LATITUDE", navdata?.gps?.latitude);
-
     demo = Object(navdata.demo);
     droneState.psi = demo.clockwiseDegrees;
     droneState.phi = demo.frontBackDegrees;
@@ -153,4 +159,35 @@ quadrotor.on("navdata", (navdata) => {
       time = 0;
     }
   }
+});
+
+const connectionEKFData = socketIOClient(SOCKET_SERVER_URL, {
+  query: "EKFDATA",
+});
+
+var EKFState = {
+  xPos: 0,
+  yPos: 0,
+  zPos: 0,
+};
+
+var timeEKF = 1;
+
+control.on("controlData", (data) => {
+  console.log("DATA", data);
+  EKFState.xPos = data.x
+  EKFState.yPos = data.y
+  // EKFState.zPos = data
+
+  timeEKF += 1;
+  if (timeEKF === 50) {
+    EKFState.time =
+      Math.round((new Date().getTime() - timeInitial) / 10, 2) / 100;
+    connectionEKFData.emit(EKF_EVENT, {
+      type: "EKFSTATE",
+      body: EKFState,
+      senderId: connectionCommand.id,
+    });
+  }
+  timeEKF = 0;
 });

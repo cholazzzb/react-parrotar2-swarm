@@ -28,16 +28,36 @@ function Controller(props) {
         </ButtonGroup>
       </Box>
       <Box p="2" borderWidth="2px" borderRadius="lg">
-        <Button my="2" colorScheme="purple" variant="solid">
+        <Button
+          my="2"
+          colorScheme="purple"
+          variant="solid"
+          onClick={() => props.sendCommandData("COMMAND", "FORWARD1")}
+        >
           Move Forward 1m
         </Button>
-        <Button my="2" colorScheme="purple" variant="solid">
+        <Button
+          my="2"
+          colorScheme="purple"
+          variant="solid"
+          onClick={() => props.sendCommandData("COMMAND", "BACKWARD1")}
+        >
           Move Backward 1m
         </Button>
-        <Button my="2" colorScheme="purple" variant="solid">
+        <Button
+          my="2"
+          colorScheme="purple"
+          variant="solid"
+          onClick={() => props.sendCommandData("COMMAND", "LEFT1")}
+        >
           Move Left 1m
         </Button>
-        <Button my="2" colorScheme="purple" variant="solid">
+        <Button
+          my="2"
+          colorScheme="purple"
+          variant="solid"
+          onClick={() => props.sendCommandData("COMMAND", "RIGHT1")}
+        >
           Move Right 1m
         </Button>
       </Box>

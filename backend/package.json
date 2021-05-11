@@ -6,11 +6,13 @@
   "type": "module",
   "scripts": {
     "start": "nodemon ./index.js",
-    "controller" : "nodemon ./controller.js"
+    "controller": "nodemon ./controller.js",
+    "test": "nodemon ./delme/ekf.js"
   },
   "author": "",
   "dependencies": {
     "ar-drone": "^0.3.3",
+    "ardrone-autonomy": "^0.1.2",
     "nodemon": "^2.0.7",
     "socket.io": "^4.0.1",
     "socket.io-client": "^4.0.1"

@@ -11,6 +11,7 @@ const io = new socketIO.Server(server, {
 const PORT = 4000;
 const NAVDATA_EVENT = "NAVDATA_EVENT"
 const COMMAND_EVENT = "COMMAND_EVENT"
+const EKF_EVENT = "EKF_EVENT"
 
 io.on("connection", (socket) => {
   console.log(`Client ${socket.id} connected`);
@@ -20,15 +21,21 @@ io.on("connection", (socket) => {
   socket.join(type);
 
   // Listen for new messages
-  socket.on(NAVDATA_EVENT, (data) => {
-    io.in(type).emit(NAVDATA_EVENT, data);
-    console.log('---EMIT DATA NAVDATA---')
-    console.log('Data', data)
-  });
+  // socket.on(NAVDATA_EVENT, (data) => {
+  //   io.in(type).emit(NAVDATA_EVENT, data);
+  //   console.log('---EMIT DATA NAVDATA---')
+  //   console.log('Data', data)
+  // });
 
   socket.on(COMMAND_EVENT, (data) => {
     io.in(type).emit(COMMAND_EVENT, data);
     console.log('---EMIT DATA COMMAND---')
+    console.log('Data', data)
+  });
+
+  socket.on(EKF_EVENT, (data) => {
+    io.in(type).emit(EKF_EVENT, data);
+    console.log('---EMIT DATA EKF---')
     console.log('Data', data)
   });
 
