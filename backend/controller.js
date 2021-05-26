@@ -1,29 +1,17 @@
 import socketIOClient from "socket.io-client";
 import * as arDrone from "ar-drone";
-import arDroneConstants from "ar-drone/lib/constants.js";
 import autonomy from "ardrone-autonomy";
 
 console.log("CONNECTING...");
-var quadrotor = arDrone.createClient();
-var control = new autonomy.Controller(quadrotor);
-function navdata_option_mask(c) {
-  return 1 << c;
-}
+var quadrotor1 = arDrone.createClient({ ip: "192.168.1.2" });
+var quadrotor2 = arDrone.createClient({ ip: "192.168.1.9" });
+var control1 = new autonomy.Controller(quadrotor1);
+var control2 = new autonomy.Controller(quadrotor2);
 
-// From the SDK.
-// var default_navdata_options =
-//   navdata_option_mask(arDroneConstants.options.DEMO)
-// |
-// navdata_option_mask(arDroneConstants.options.VISION_DETECT);
-// Enable the magnetometer data.
-// quadrotor.config(
-//   "general:navdata_options",
-//   // default_navdata_options |
-//     navdata_option_mask(arDroneConstants.options.MAGNETO)
-// );
-
-quadrotor.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
-quadrotor.config("general:navdata_options", 777060865); // turn on GPS
+quadrotor1.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
+quadrotor1.config("general:navdata_options", 777060865); // turn on GPS
+quadrotor2.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
+quadrotor2.config("general:navdata_options", 777060865); // turn on GPS
 console.log("SUCCESS CONNECTING");
 
 const SOCKET_SERVER_URL = "http://localhost:4000";
@@ -47,11 +35,11 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "CONNECT":
           try {
             console.log("CONNECTING...");
-            quadrotor = arDrone.createClient();
-            quadrotor.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
+            quadrotor1 = arDrone.createClient();
+            quadrotor1.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
             console.log("SUCCESS CONNECTING");
           } catch (error) {
-            quadrotor.after(100, () => {
+            quadrotor1.after(100, () => {
               this.stop();
               this.land();
             });
@@ -62,14 +50,18 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "TAKEOFF":
           try {
             console.log("TAKEOFF...");
-            quadrotor.takeoff();
+            quadrotor1.takeoff();
+            quadrotor2.takeoff();
             console.log("TAKEOFF SUCCESS!");
-            quadrotor.after(5000, () => {
+            quadrotor1.after(5000, () => {
               console.log("CALIBRATING POSITION");
-              control.zero();
+              control1.zero();
+              control1.hover();
+              control2.zero();
+              control2.hover();
             });
           } catch (error) {
-            quadrotor.after(100, () => {
+            quadrotor1.after(100, () => {
               this.stop();
               this.land();
             });
@@ -80,11 +72,11 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "LAND":
           try {
             console.log("LANDING...");
-            quadrotor.stop();
-            quadrotor.land();
+            quadrotor1.stop();
+            quadrotor1.land();
             console.log("LANDING SUCCESS!");
           } catch (error) {
-            quadrotor.after(100, () => {
+            quadrotor1.after(100, () => {
               this.stop();
               this.land();
             });
@@ -95,14 +87,54 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "FORWARD1":
           try {
             console.log("MOVING FORWARD 1m ");
-            control.forward(1);
+            control1.forward(1);
           } catch (error) {
-            quadrotor.after(100, () => {
+            quadrotor1.after(100, () => {
               this.stop();
               this.land();
             });
             console.error("ERROR WHEN FORWARD1!");
           }
+          break;
+
+        case "BACKWARD1":
+          try {
+            console.log("MOVING BACKWARD 1m ");
+            control1.backward(1);
+          } catch (error) {
+            quadrotor1.after(100, () => {
+              this.stop();
+              this.land();
+            });
+            console.error("ERROR WHEN BACKWARD1!");
+          }
+          break;
+
+        case "LEFT1":
+          try {
+            console.log("MOVING LEFT 1m ");
+            control1.left(1);
+          } catch (error) {
+            quadrotor1.after(100, () => {
+              this.stop();
+              this.land();
+            });
+            console.error("ERROR WHEN LEFT1!");
+          }
+          break;
+
+        case "RIGHT1":
+          try {
+            console.log("MOVING RIGHT 1m ");
+            control1.right(1);
+          } catch (error) {
+            quadrotor1.after(100, () => {
+              this.stop();
+              this.land();
+            });
+            console.error("ERROR WHEN RIGHT1!");
+          }
+          break;
 
         default:
           break;
@@ -136,7 +168,7 @@ var droneState = {
 var timeInitial = new Date().getTime();
 var time = 1;
 
-quadrotor.on("navdata", (navdata) => {
+quadrotor1.on("navdata", (navdata) => {
   if (navdata !== undefined) {
     demo = Object(navdata.demo);
     droneState.psi = demo.clockwiseDegrees;
@@ -169,25 +201,26 @@ var EKFState = {
   xPos: 0,
   yPos: 0,
   zPos: 0,
+  yaw: 0,
 };
 
 var timeEKF = 1;
 
-control.on("controlData", (data) => {
-  console.log("DATA", data);
-  EKFState.xPos = data.x
-  EKFState.yPos = data.y
-  // EKFState.zPos = data
+control1.on("control1Data", (ekfData) => {
+  if (ekfData !== undefined) {
+    EKFState.xPos = ekfData.state.x;
+    EKFState.yPos = ekfData.state.y;
+    EKFState.zPos = ekfData.state.z;
+    EKFState.yaw = ekfData.state.yaw;
 
-  timeEKF += 1;
-  if (timeEKF === 50) {
-    EKFState.time =
-      Math.round((new Date().getTime() - timeInitial) / 10, 2) / 100;
-    connectionEKFData.emit(EKF_EVENT, {
-      type: "EKFSTATE",
-      body: EKFState,
-      senderId: connectionCommand.id,
-    });
+    timeEKF += 1;
+    if (timeEKF === 50) {
+      connectionEKFData.emit(EKF_EVENT, {
+        type: "EKFSTATE",
+        body: EKFState,
+        senderId: connectionCommand.id,
+      });
+      timeEKF = 0;
+    }
   }
-  timeEKF = 0;
 });

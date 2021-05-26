@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Text, Heading } from "@chakra-ui/react";
 
 function DroneState(props) {
-  console.log("props", props);
   return (
     <Box px="6" py="4" borderWidth="2px" borderRadius="lg">
       <Heading pb="4">Drone State</Heading>

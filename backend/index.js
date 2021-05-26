@@ -21,11 +21,11 @@ io.on("connection", (socket) => {
   socket.join(type);
 
   // Listen for new messages
-  // socket.on(NAVDATA_EVENT, (data) => {
-  //   io.in(type).emit(NAVDATA_EVENT, data);
-  //   console.log('---EMIT DATA NAVDATA---')
-  //   console.log('Data', data)
-  // });
+  socket.on(NAVDATA_EVENT, (data) => {
+    io.in(type).emit(NAVDATA_EVENT, data);
+    // console.log('---EMIT DATA NAVDATA---')
+    // console.log('Data', data)
+  });
 
   socket.on(COMMAND_EVENT, (data) => {
     io.in(type).emit(COMMAND_EVENT, data);
@@ -35,8 +35,8 @@ io.on("connection", (socket) => {
 
   socket.on(EKF_EVENT, (data) => {
     io.in(type).emit(EKF_EVENT, data);
-    console.log('---EMIT DATA EKF---')
-    console.log('Data', data)
+    // console.log('---EMIT DATA EKF---')
+    // console.log('Data', data)
   });
 
   // Leave the room if the user closes the socket

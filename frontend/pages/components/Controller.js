@@ -10,7 +10,7 @@ function Controller(props) {
             colorScheme="green"
             onClick={() => props.sendCommandData("COMMAND", "CINNECT")}
           >
-            Connect
+            Restart
           </Button>
           <Button
             colorScheme="blue"
