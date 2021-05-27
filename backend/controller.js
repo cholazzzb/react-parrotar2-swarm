@@ -4,14 +4,14 @@ import autonomy from "ardrone-autonomy";
 
 console.log("CONNECTING...");
 var quadrotor1 = arDrone.createClient({ ip: "192.168.1.2" });
-var quadrotor2 = arDrone.createClient({ ip: "192.168.1.9" });
+// var quadrotor2 = arDrone.createClient({ ip: "192.168.1.9" });
 var control1 = new autonomy.Controller(quadrotor1);
-var control2 = new autonomy.Controller(quadrotor2);
+// var control2 = new autonomy.Controller(quadrotor2);
 
 quadrotor1.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
 quadrotor1.config("general:navdata_options", 777060865); // turn on GPS
-quadrotor2.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
-quadrotor2.config("general:navdata_options", 777060865); // turn on GPS
+// quadrotor2.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
+// quadrotor2.config("general:navdata_options", 777060865); // turn on GPS
 console.log("SUCCESS CONNECTING");
 
 const SOCKET_SERVER_URL = "http://localhost:4000";
@@ -22,6 +22,14 @@ const EKF_EVENT = "EKF_EVENT";
 const connectionCommand = socketIOClient(SOCKET_SERVER_URL, {
   query: "COMMAND",
 });
+
+/**
+Force shutdown
+telnet 192.168.1.1
+
+cd sbin
+poweroff
+ */
 
 // COMMAND
 connectionCommand.on(COMMAND_EVENT, (data) => {
@@ -51,15 +59,20 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
           try {
             console.log("TAKEOFF...");
             quadrotor1.takeoff();
-            quadrotor2.takeoff();
+            // quadrotor2.takeoff();
             console.log("TAKEOFF SUCCESS!");
             quadrotor1.after(5000, () => {
               console.log("CALIBRATING POSITION");
               control1.zero();
-              control1.hover();
-              control2.zero();
-              control2.hover();
+              control1.forward(0.1);
+              // control1.hover();
+              // control2.zero();
+              // control2.hover();
             });
+            // quadrotor1.after(1000, () => {
+            //   quadrotor1.stop()
+            //   quadrotor1.land()
+            // })
           } catch (error) {
             quadrotor1.after(100, () => {
               this.stop();
