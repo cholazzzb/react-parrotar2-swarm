@@ -17,10 +17,33 @@ This project is underdevelopment
 
 ## Tech :
 
-### Frontend :
+1. Frontend :
 
 - React.js with Next.js, Nivo Rock, Chakra UI
 
-### Backend :
+2. Backend :
 
 - Node.js, Socket.io
+
+## First Install :
+
+1. download or clone this repo
+2. open this folder in terminal or cmd
+3. cd frontend
+4. npm install
+5. cd ..
+6. cd backend
+7. npm install
+8. Done! :D
+
+## How to run :
+
+1. open this folder in 3 cmd or terminal
+1. (first cmd/terminal) cd frontend
+1. npm run dev
+1. (second cmd/terminal) cd backend
+1. npm start
+1. (third cmd/terminal) cd backend
+1. npm run controller
+
+Have fun!
