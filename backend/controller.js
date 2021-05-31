@@ -1,17 +1,27 @@
 import socketIOClient from "socket.io-client";
-import * as arDrone from "ar-drone";
 import autonomy from "ardrone-autonomy";
+import fs from "fs";
 
-console.log("CONNECTING...");
-var quadrotor1 = arDrone.createClient({ ip: "192.168.1.2" });
-// var quadrotor2 = arDrone.createClient({ ip: "192.168.1.9" });
-var control1 = new autonomy.Controller(quadrotor1);
-// var control2 = new autonomy.Controller(quadrotor2);
+var angleData = [
+  [], // Time
+  [], // Phi
+  [], // Theta
+  [], // Psi
+];
+const fileName = "theta1_1";
 
-quadrotor1.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
-quadrotor1.config("general:navdata_options", 777060865); // turn on GPS
+// console.log("CONNECTING...");
+// var quadrotor1 = arDrone.createClient({ ip: "192.168.1.2" });
+// // var quadrotor2 = arDrone.createClient({ ip: "192.168.1.9" });
+// var control1 = new autonomy.Controller(quadrotor1);
+// // var control2 = new autonomy.Controller(quadrotor2);
+
+// quadrotor1.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
+// quadrotor1.config("general:navdata_options", 777060865); // turn on GPS
 // quadrotor2.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
 // quadrotor2.config("general:navdata_options", 777060865); // turn on GPS
+var [client, control, mission] = autonomy.createMission({ ip: "192.168.1.2" });
+
 console.log("SUCCESS CONNECTING");
 
 const SOCKET_SERVER_URL = "http://localhost:4000";
@@ -40,112 +50,175 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
   switch (data.type) {
     case "COMMAND":
       switch (data.body) {
-        case "CONNECT":
+        case "START":
           try {
-            console.log("CONNECTING...");
-            quadrotor1 = arDrone.createClient();
-            quadrotor1.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
-            console.log("SUCCESS CONNECTING");
-          } catch (error) {
-            quadrotor1.after(100, () => {
-              this.stop();
-              this.land();
+            console.log("STARTING...");
+            mission.run(function (err, result) {
+              if (err) {
+                console.trace("Oops, something bad happened: %s", err.message);
+                mission.client().stop();
+                mission.client().land();
+              } else {
+                console.log("Mission success!");
+                process.exit(0);
+              }
             });
-            console.error("ERROR WHEN CONNECTING!");
+          } catch (error) {
+            console.error("ERROR WHEN STARTING!");
           }
           break;
 
-        case "TAKEOFF":
+        case "CALIBRATE":
           try {
-            console.log("TAKEOFF...");
-            quadrotor1.takeoff();
-            // quadrotor2.takeoff();
-            console.log("TAKEOFF SUCCESS!");
-            quadrotor1.after(5000, () => {
-              console.log("CALIBRATING POSITION");
-              control1.zero();
-              control1.forward(0.1);
-              // control1.hover();
-              // control2.zero();
-              // control2.hover();
-            });
-            // quadrotor1.after(1000, () => {
-            //   quadrotor1.stop()
-            //   quadrotor1.land()
-            // })
+            console.log("CALIBRATING...");
+            mission.takeoff().zero().land();
           } catch (error) {
-            quadrotor1.after(100, () => {
-              this.stop();
-              this.land();
-            });
-            console.error("ERROR WHEN TAKEOFF!");
+            console.error("ERROR WHEN STARTING!");
           }
           break;
 
-        case "LAND":
+        case "MISSION":
           try {
-            console.log("LANDING...");
-            quadrotor1.stop();
-            quadrotor1.land();
-            console.log("LANDING SUCCESS!");
+            console.log("MISSION");
+            mission
+              .takeoff()
+              .zero() // Sets the current state as the reference
+              // .cw(45)
+              .forward(1)
+              // .hover(1000) // Hover in place for 1 second
+              // .forward(1)
+              // .cw(180)
+              .land();
           } catch (error) {
-            quadrotor1.after(100, () => {
-              this.stop();
-              this.land();
-            });
-            console.error("ERROR WHEN LANDING!");
+            console.error("ERROR WHEN STARTING!");
+          }
+          break;
+        case "PHI":
+          try {
+            console.log("PHI");
+            client.takeoff();
+
+            client
+              .after(5000, function () {
+                angleData = [
+                  [], // Time
+                  [], // Phi
+                  [], // Theta
+                  [], // Psi
+                ];
+                console.log("PHI");
+                this.left(1);
+              })
+              .after(2000, function () {
+                console.log("stop");
+
+                this.stop();
+                var dataSaved = {
+                  time: angleData[0],
+                  phi: angleData[1],
+                  theta: angleData[2],
+                  psi: angleData[3],
+                };
+                fs.writeFileSync(
+                  `./${fileName}.js`,
+                  `const ${fileName} =  ` +
+                    JSON.stringify(dataSaved) +
+                    `; export default ${fileName}`,
+                  "utf-8"
+                );
+
+                console.log("finish");
+              })
+              .after(1000, function () {
+                this.land();
+              });
+          } catch (error) {
+            console.error("ERROR WHEN PHI!");
           }
           break;
 
-        case "FORWARD1":
+        case "THETA":
           try {
-            console.log("MOVING FORWARD 1m ");
-            control1.forward(1);
+            console.log("THETA");
+            client.takeoff();
+
+            client
+              .after(5000, function () {
+                angleData = [
+                  [], // Time
+                  [], // Phi
+                  [], // Theta
+                  [], // Psi
+                ];
+                console.log("FRONT");
+                this.front(1);
+              })
+              .after(1000, function () {
+                console.log("stop");
+                this.front(0);
+                var dataSaved = {
+                  time: angleData[0],
+                  phi: angleData[1],
+                  theta: angleData[2],
+                  psi: angleData[3],
+                };
+                fs.writeFileSync(
+                  `./${fileName}.js`,
+                  `const ${fileName} =  ` +
+                    JSON.stringify(dataSaved) +
+                    `; export default ${fileName}`,
+                  "utf-8"
+                );
+                console.log("finish");
+              })
+              // .after(2000, function () {
+              //   console.log("land");
+                // this.stop();
+                // this.land();
+              // });
           } catch (error) {
-            quadrotor1.after(100, () => {
-              this.stop();
-              this.land();
-            });
-            console.error("ERROR WHEN FORWARD1!");
+            console.error("ERROR WHEN THETA!");
           }
           break;
 
-        case "BACKWARD1":
+        case "PSI":
           try {
-            console.log("MOVING BACKWARD 1m ");
-            control1.backward(1);
-          } catch (error) {
-            quadrotor1.after(100, () => {
-              this.stop();
-              this.land();
-            });
-            console.error("ERROR WHEN BACKWARD1!");
-          }
-          break;
+            console.log("PSI");
+            client.takeoff();
 
-        case "LEFT1":
-          try {
-            console.log("MOVING LEFT 1m ");
-            control1.left(1);
+            client
+              .after(5000, function () {
+                angleData = [
+                  [], // Time
+                  [], // Phi
+                  [], // Theta
+                  [], // Psi
+                ];
+                this.clockwise(1);
+              })
+              .after(1000, function () {
+                console.log("stop");
+                this.stop();
+                var dataSaved = {
+                  time: angleData[0],
+                  phi: angleData[1],
+                  theta: angleData[2],
+                  psi: angleData[3],
+                };
+                fs.writeFileSync(
+                  `./${fileName}.js`,
+                  `const ${fileName} =  ` +
+                    JSON.stringify(dataSaved) +
+                    `; export default ${fileName}`,
+                  "utf-8"
+                );
+              })
+              .after(1000, function () {
+                this.land();
+                console.log("finish");
+              });
           } catch (error) {
-            quadrotor1.after(100, () => {
-              this.stop();
-              this.land();
-            });
-            console.error("ERROR WHEN LEFT1!");
-          }
-          break;
-
-        case "RIGHT1":
-          try {
-            console.log("MOVING RIGHT 1m ");
-            control1.right(1);
-          } catch (error) {
-            quadrotor1.after(100, () => {
-              this.stop();
-              this.land();
-            });
-            console.error("ERROR WHEN RIGHT1!");
+            console.error("ERROR WHEN PSI!");
           }
           break;
 
@@ -181,19 +254,20 @@ var droneState = {
 var timeInitial = new Date().getTime();
 var time = 1;
 
-quadrotor1.on("navdata", (navdata) => {
+client.on("navdata", (navdata) => {
   if (navdata !== undefined) {
     demo = Object(navdata.demo);
+    // console.log(demo)
     droneState.psi = demo.clockwiseDegrees;
-    droneState.phi = demo.frontBackDegrees;
-    droneState.theta = demo.leftRightDegrees;
+    droneState.phi = demo.leftRightDegrees;
+    droneState.theta = demo.frontBackDegrees;
     droneState.altitude = demo.altitude;
     droneState.altitudeMeters = demo.altitudeMeters;
     droneState.velocity = demo.velocity;
     droneState.batteryPercentage = demo.batteryPercentage;
 
     time += 1;
-    if (time === 50) {
+    if (time === 5) {
       droneState.time =
         Math.round((new Date().getTime() - timeInitial) / 10, 2) / 100;
       connectionNavData.emit(NAVDATA_EVENT, {
@@ -201,6 +275,10 @@ quadrotor1.on("navdata", (navdata) => {
         body: droneState,
         senderId: connectionCommand.id,
       });
+      angleData[0].push(droneState.time);
+      angleData[1].push(droneState.phi);
+      angleData[2].push(droneState.theta);
+      angleData[3].push(droneState.psi);
       time = 0;
     }
   }
@@ -219,7 +297,7 @@ var EKFState = {
 
 var timeEKF = 1;
 
-control1.on("control1Data", (ekfData) => {
+control.on("controlData", (ekfData) => {
   if (ekfData !== undefined) {
     EKFState.xPos = ekfData.state.x;
     EKFState.yPos = ekfData.state.y;
@@ -227,7 +305,7 @@ control1.on("control1Data", (ekfData) => {
     EKFState.yaw = ekfData.state.yaw;
 
     timeEKF += 1;
-    if (timeEKF === 50) {
+    if (timeEKF === 5) {
       connectionEKFData.emit(EKF_EVENT, {
         type: "EKFSTATE",
         body: EKFState,

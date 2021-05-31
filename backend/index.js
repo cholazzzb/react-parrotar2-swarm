@@ -35,8 +35,8 @@ io.on("connection", (socket) => {
 
   socket.on(EKF_EVENT, (data) => {
     io.in(type).emit(EKF_EVENT, data);
-    // console.log('---EMIT DATA EKF---')
-    // console.log('Data', data)
+    console.log('---EMIT DATA EKF---')
+    console.log('Data', data)
   });
 
   // Leave the room if the user closes the socket

@@ -72,13 +72,13 @@ function useSocket(type, eventConstant) {
             y: newData?.body?.psi,
           });
 
-          if (incomingData.angles[0].data.length > 10) {
+          if (incomingData.angles[0].data.length > 25) {
             incomingData.angles[0].data.shift();
           }
-          if (incomingData.angles[1].data.length > 10) {
+          if (incomingData.angles[1].data.length > 25) {
             incomingData.angles[1].data.shift();
           }
-          if (incomingData.angles[2].data.length > 10) {
+          if (incomingData.angles[2].data.length > 25) {
             incomingData.angles[2].data.shift();
           }
 
@@ -87,7 +87,7 @@ function useSocket(type, eventConstant) {
             y: newData?.body?.altitude,
           });
 
-          if (incomingData.altitude[0].data.length > 10) {
+          if (incomingData.altitude[0].data.length > 25) {
             incomingData.altitude[0].data.shift();
           }
 

@@ -6,11 +6,11 @@ function QuadrotorPosition({ data }) {
     <ResponsiveScatterPlot
       data={data}
       margin={{ top: 60, right: 140, bottom: 70, left: 90 }}
-      xScale={{ type: "linear", min: 0, max: "auto" }}
+      xScale={{ type: "linear", min: -4, max: 4 }}
       xFormat={function (e) {
         return e + " m";
       }}
-      yScale={{ type: "linear", min: 0, max: "auto" }}
+      yScale={{ type: "linear", min: -1, max: 1 }}
       yFormat={function (e) {
         return e + " m";
       }}
