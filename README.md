@@ -39,11 +39,20 @@ This project is underdevelopment
 ## How to run :
 
 1. open this folder in 3 cmd or terminal
-1. (first cmd/terminal) cd frontend
+
+### First Cmd/Terminal
+
+1. cd frontend
 1. npm run dev
-1. (second cmd/terminal) cd backend
+
+### Second Cmd/Terminal
+
+1. cd backend
 1. npm start
-1. (third cmd/terminal) cd backend
+
+### Third Cmd/Terminal
+
+1. cd backend
 1. npm run controller
 
 Have fun!
