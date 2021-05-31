@@ -1,3 +1,11 @@
+# Experiment List : 
+1. Quadrotor Angles' Respond from node-ar-drone module
+2. See the precision of Kalman Filter
+3. See the PID Position controller performance
+4. Formation Control
+5. Fly as the map
+6. Integrate with Camera and Image Processing
+
 # 1. Quadrotor Angles' Respond from node-ar-drone module
 - Fly the quadrotor, and give a target forward(1) for 2 seconds
 - Fly the quadrotor, and give a target left/right(1) for 2 seconds
