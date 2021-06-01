@@ -285,3 +285,17 @@ const DataProcess = {
 };
 
 export default DataProcess;
+
+// import fs from "fs";
+// const averageData = {
+//   dataPhiAverage: [{ id: "Phi Average", data: newPhiAverage }],
+//   dataThetaAverage: [{ id: "Theta Average", data: newThetaAverage }],
+//   dataPsiAverage: [{ id: "Psi Average", data: newPsiAverage }],
+// }
+// fs.writeFileSync(
+//   `./Data/averageData.js`,
+//   `const averageData =  ` +
+//     JSON.stringify(averageData) +
+//     `; export default averageData`,
+//   "utf-8"
+// );
