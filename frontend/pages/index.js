@@ -17,7 +17,7 @@ const COMMAND_EVENT = "COMMAND_EVENT";
 const EKF_EVENT = "EKF_EVENT";
 
 export default function Home() {
-  const [slide, setSlide] = useState(1);
+  const [slide, setSlide] = useState(0);
   const [status, setStatus] = useState("INITIAL STATUS");
   const [commandData, sendCommandData] = useSocket("COMMAND", COMMAND_EVENT);
   const [navData, setNavData] = useSocket("NAVDATA", NAVDATA_EVENT);
@@ -96,7 +96,7 @@ export default function Home() {
               <QuadrotorChart data={DataProcess.dataPsi} yLabel="Psi" />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={DataProcess.dataPsi} yLabel="Psi Average" />
+              <QuadrotorChart data={DataProcess.dataPsiAverage} yLabel="Psi Average" />
             </GridItem>
           </Grid>
         </>

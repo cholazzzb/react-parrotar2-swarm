@@ -50,7 +50,7 @@ let newPhi2 = [];
 let newPhi3 = [];
 let newPhi4 = [];
 let newPhi5 = [];
-let newPhiAverage = []
+let newPhiAverage = [];
 for (let iteration = 0; iteration < dataPhi[0].time.length; iteration++) {
   newPhi1.push({
     x: timeSampling * iteration,
@@ -74,8 +74,14 @@ for (let iteration = 0; iteration < dataPhi[0].time.length; iteration++) {
   });
   newPhiAverage.push({
     x: timeSampling * iteration,
-    y: (dataPhi[0].phi[iteration] + dataPhi[1].phi[iteration] + dataPhi[2].phi[iteration] + dataPhi[3].phi[iteration] + dataPhi[4].phi[iteration])/5
-  })
+    y:
+      (dataPhi[0].phi[iteration] +
+        dataPhi[1].phi[iteration] +
+        dataPhi[2].phi[iteration] +
+        dataPhi[3].phi[iteration] +
+        dataPhi[4].phi[iteration]) /
+      5,
+  });
 }
 
 const newDataPhi = [
@@ -128,7 +134,7 @@ let newTheta2 = [];
 let newTheta3 = [];
 let newTheta4 = [];
 let newTheta5 = [];
-let newThetaAverage = []
+let newThetaAverage = [];
 for (let iteration = 0; iteration < dataTheta[0].time.length; iteration++) {
   newTheta1.push({
     x: timeSampling * iteration,
@@ -152,7 +158,13 @@ for (let iteration = 0; iteration < dataTheta[0].time.length; iteration++) {
   });
   newThetaAverage.push({
     x: timeSampling * iteration,
-    y: (dataTheta[0].theta[iteration] + dataTheta[1].theta[iteration] + dataTheta[2].theta[iteration] + dataTheta[3].theta[iteration] + dataTheta[4].theta[iteration])/5,
+    y:
+      (dataTheta[0].theta[iteration] +
+        dataTheta[1].theta[iteration] +
+        dataTheta[2].theta[iteration] +
+        dataTheta[3].theta[iteration] +
+        dataTheta[4].theta[iteration]) /
+      5,
   });
 }
 
@@ -206,6 +218,7 @@ let newPsi2 = [];
 let newPsi3 = [];
 let newPsi4 = [];
 let newPsi5 = [];
+let newPsiAverage = [];
 for (let iteration = 0; iteration < dataPsi[0].time.length; iteration++) {
   newPsi1.push({
     x: timeSampling * iteration,
@@ -226,6 +239,16 @@ for (let iteration = 0; iteration < dataPsi[0].time.length; iteration++) {
   newPsi5.push({
     x: timeSampling * iteration,
     y: dataPsi[4].psi[iteration],
+  });
+  newPsiAverage.push({
+    x: timeSampling * iteration,
+    y:
+      (dataPsi[0].psi[iteration] +
+        dataPsi[1].psi[iteration] +
+        dataPsi[2].psi[iteration] +
+        dataPsi[3].psi[iteration] +
+        dataPsi[4].psi[iteration]) /
+      5,
   });
 }
 
@@ -256,9 +279,9 @@ const DataProcess = {
   dataPhi: newDataPhi,
   dataTheta: newDataTheta,
   dataPsi: newDataPsi,
-  dataPhiAverage: [{id: "Phi Average", data:newPhiAverage}],
-  dataThetaAverage: [{id: "Theta Average", data:newThetaAverage}],
-  
+  dataPhiAverage: [{ id: "Phi Average", data: newPhiAverage }],
+  dataThetaAverage: [{ id: "Theta Average", data: newThetaAverage }],
+  dataPsiAverage: [{ id: "Psi Average", data: newPsiAverage }],
 };
 
 export default DataProcess;

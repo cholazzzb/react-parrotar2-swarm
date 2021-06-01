@@ -8,7 +8,7 @@ var angleData = [
   [], // Theta
   [], // Psi
 ];
-const fileName = "theta1_1";
+const fileName = "psi_5";
 
 // console.log("CONNECTING...");
 // var quadrotor1 = arDrone.createClient({ ip: "192.168.1.2" });
@@ -20,7 +20,7 @@ const fileName = "theta1_1";
 // quadrotor1.config("general:navdata_options", 777060865); // turn on GPS
 // quadrotor2.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
 // quadrotor2.config("general:navdata_options", 777060865); // turn on GPS
-var [client, control, mission] = autonomy.createMission({ ip: "192.168.1.2" });
+var [client, control, mission] = autonomy.createMission({ ip: "192.168.1.2" }, 1);
 
 console.log("SUCCESS CONNECTING");
 
@@ -109,7 +109,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                 console.log("PHI");
                 this.left(1);
               })
-              .after(2000, function () {
+              .after(1000, function () {
                 console.log("stop");
 
                 this.stop();
@@ -120,7 +120,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   psi: angleData[3],
                 };
                 fs.writeFileSync(
-                  `./${fileName}.js`,
+                  `./Data/${fileName}.js`,
                   `const ${fileName} =  ` +
                     JSON.stringify(dataSaved) +
                     `; export default ${fileName}`,
@@ -163,7 +163,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   psi: angleData[3],
                 };
                 fs.writeFileSync(
-                  `./${fileName}.js`,
+                  `./Data/${fileName}.js`,
                   `const ${fileName} =  ` +
                     JSON.stringify(dataSaved) +
                     `; export default ${fileName}`,
@@ -206,7 +206,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   psi: angleData[3],
                 };
                 fs.writeFileSync(
-                  `./${fileName}.js`,
+                  `./Data/${fileName}.js`,
                   `const ${fileName} =  ` +
                     JSON.stringify(dataSaved) +
                     `; export default ${fileName}`,
@@ -267,7 +267,7 @@ client.on("navdata", (navdata) => {
     droneState.batteryPercentage = demo.batteryPercentage;
 
     time += 1;
-    if (time === 5) {
+    if (time === 1) {
       droneState.time =
         Math.round((new Date().getTime() - timeInitial) / 10, 2) / 100;
       connectionNavData.emit(NAVDATA_EVENT, {
@@ -305,7 +305,7 @@ control.on("controlData", (ekfData) => {
     EKFState.yaw = ekfData.state.yaw;
 
     timeEKF += 1;
-    if (timeEKF === 5) {
+    if (timeEKF === 1) {
       connectionEKFData.emit(EKF_EVENT, {
         type: "EKFSTATE",
         body: EKFState,
@@ -315,5 +315,3 @@ control.on("controlData", (ekfData) => {
     }
   }
 });
-
-hallo ahaw
