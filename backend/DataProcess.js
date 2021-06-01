@@ -51,6 +51,7 @@ let newPhi3 = [];
 let newPhi4 = [];
 let newPhi5 = [];
 let newPhiAverage = [];
+let newPhiAverageArray = []
 for (let iteration = 0; iteration < dataPhi[0].time.length; iteration++) {
   newPhi1.push({
     x: timeSampling * iteration,
@@ -82,6 +83,12 @@ for (let iteration = 0; iteration < dataPhi[0].time.length; iteration++) {
         dataPhi[4].phi[iteration]) /
       5,
   });
+  newPhiAverageArray.push((dataPhi[0].phi[iteration] +
+    dataPhi[1].phi[iteration] +
+    dataPhi[2].phi[iteration] +
+    dataPhi[3].phi[iteration] +
+    dataPhi[4].phi[iteration]) /
+  5)
 }
 
 const newDataPhi = [
@@ -135,6 +142,7 @@ let newTheta3 = [];
 let newTheta4 = [];
 let newTheta5 = [];
 let newThetaAverage = [];
+let newThetaAverageArray = []
 for (let iteration = 0; iteration < dataTheta[0].time.length; iteration++) {
   newTheta1.push({
     x: timeSampling * iteration,
@@ -166,6 +174,12 @@ for (let iteration = 0; iteration < dataTheta[0].time.length; iteration++) {
         dataTheta[4].theta[iteration]) /
       5,
   });
+  newThetaAverageArray.push((dataTheta[0].theta[iteration] +
+    dataTheta[1].theta[iteration] +
+    dataTheta[2].theta[iteration] +
+    dataTheta[3].theta[iteration] +
+    dataTheta[4].theta[iteration]) /
+  5)
 }
 
 const newDataTheta = [
@@ -219,6 +233,7 @@ let newPsi3 = [];
 let newPsi4 = [];
 let newPsi5 = [];
 let newPsiAverage = [];
+let newPsiAverageArray = []
 for (let iteration = 0; iteration < dataPsi[0].time.length; iteration++) {
   newPsi1.push({
     x: timeSampling * iteration,
@@ -250,6 +265,14 @@ for (let iteration = 0; iteration < dataPsi[0].time.length; iteration++) {
         dataPsi[4].psi[iteration]) /
       5,
   });
+  newPsiAverageArray.push(
+    (dataPsi[0].psi[iteration] +
+      dataPsi[1].psi[iteration] +
+      dataPsi[2].psi[iteration] +
+      dataPsi[3].psi[iteration] +
+      dataPsi[4].psi[iteration]) /
+    5
+  )
 }
 
 const newDataPsi = [
@@ -286,16 +309,16 @@ const DataProcess = {
 
 export default DataProcess;
 
-// import fs from "fs";
-// const averageData = {
-//   dataPhiAverage: [{ id: "Phi Average", data: newPhiAverage }],
-//   dataThetaAverage: [{ id: "Theta Average", data: newThetaAverage }],
-//   dataPsiAverage: [{ id: "Psi Average", data: newPsiAverage }],
-// }
-// fs.writeFileSync(
-//   `./Data/averageData.js`,
-//   `const averageData =  ` +
-//     JSON.stringify(averageData) +
-//     `; export default averageData`,
-//   "utf-8"
-// );
+import fs from "fs";
+const averageData = {
+  dataPhiAverage: newPhiAverageArray,
+  dataThetaAverage: newThetaAverageArray,
+  dataPsiAverage: newPsiAverageArray,
+}
+fs.writeFileSync(
+  `./Data/averageData.js`,
+  `const averageData =  ` +
+    JSON.stringify(averageData) +
+    `; export default averageData`,
+  "utf-8"
+);
