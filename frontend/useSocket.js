@@ -5,7 +5,8 @@ const SOCKET_SERVER_URL = "http://localhost:4000";
 
 const NAVDATA_EVENT = "NAVDATA_EVENT";
 const COMMAND_EVENT = "COMMAND_EVENT";
-const EKF_EVENT = "EKF_EVENT";
+const EKF_EVENT1 = "EKF_EVENT1";
+const EKF_EVENT2 = "EKF_EVENT2"
 
 function useSocket(type, eventConstant) {
   var initialState = {};
@@ -26,7 +27,7 @@ function useSocket(type, eventConstant) {
         battery: 0,
       };
       break;
-    case EKF_EVENT:
+    case EKF_EVENT1:
       initialState = {
         position: [
           {
@@ -94,7 +95,7 @@ function useSocket(type, eventConstant) {
           incomingData.battery = newData?.body?.batteryPercentage;
 
           break;
-        case EKF_EVENT:
+        case EKF_EVENT1:
           incomingData = { ...data };
           incomingData.position[0].data.push({
             x: newData.body.xPos,

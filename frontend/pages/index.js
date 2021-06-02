@@ -10,18 +10,21 @@ import Controller from "./components/Controller";
 import QuadrotorChart from "./components/QuadrotorChart";
 import QuadrotorPosition from "./components/QuadrotorPosition";
 
-import DataProcess from "../../backend/DataProcess";
+// import DataProcess from "../../backend/DataProcess";
+import processedData from "../../backend/Data/1per15/target1/processedData.js"
 
 const NAVDATA_EVENT = "NAVDATA_EVENT";
 const COMMAND_EVENT = "COMMAND_EVENT";
-const EKF_EVENT = "EKF_EVENT";
+const EKF_EVENT1 = "EKF_EVENT1";
+const EKF_EVENT2 = "EKF_EVENT2"
 
 export default function Home() {
   const [slide, setSlide] = useState(0);
   const [status, setStatus] = useState("INITIAL STATUS");
   const [commandData, sendCommandData] = useSocket("COMMAND", COMMAND_EVENT);
   const [navData, setNavData] = useSocket("NAVDATA", NAVDATA_EVENT);
-  const [ekfData, setEkfData] = useSocket("EKFDATA", EKF_EVENT);
+  const [ekfData1, setEkfData1] = useSocket("EKFDATA1", EKF_EVENT1);
+  const [ekfData2, setEkfData2] = useSocket("EKFDATA2", EKF_EVENT2)
 
   return (
     <div>
@@ -51,11 +54,11 @@ export default function Home() {
               borderRadius="lg"
               colSpan={4}
             >
-              <QuadrotorPosition data={ekfData.position} />
+              {/* <QuadrotorPosition data={ekfData1.position} /> */}
             </GridItem>
             <GridItem rowSpan={2} colSpan={1}>
               <DroneState data={navData} />
-              <EKFState data={ekfData} />
+              <EKFState data={ekfData1} />
               <Controller sendCommandData={sendCommandData} />
             </GridItem>
             <GridItem colSpan={4} bg="papayawhip">
@@ -81,22 +84,22 @@ export default function Home() {
             gap={4}
           >
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={DataProcess.dataPhi} yLabel="Phi" />
+              <QuadrotorChart data={processedData.phi} yLabel="Phi" />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={DataProcess.dataPhiAverage} yLabel="Phi Average" />
+              <QuadrotorChart data={processedData.phiAverage} yLabel="Phi Average" />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={DataProcess.dataTheta} yLabel="Theta" />
+              <QuadrotorChart data={processedData.theta} yLabel="Theta" />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={DataProcess.dataThetaAverage} yLabel="Theta Average" />
+              <QuadrotorChart data={processedData.thetaAverage} yLabel="Theta Average" />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={DataProcess.dataPsi} yLabel="Psi" />
+              <QuadrotorChart data={processedData.psi} yLabel="Psi" />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={DataProcess.dataPsiAverage} yLabel="Psi Average" />
+              <QuadrotorChart data={processedData.psiAverage} yLabel="Psi Average" />
             </GridItem>
           </Grid>
         </>

@@ -309,16 +309,16 @@ const DataProcess = {
 
 export default DataProcess;
 
-import fs from "fs";
-const averageData = {
-  dataPhiAverage: newPhiAverageArray,
-  dataThetaAverage: newThetaAverageArray,
-  dataPsiAverage: newPsiAverageArray,
-}
-fs.writeFileSync(
-  `./Data/averageData.js`,
-  `const averageData =  ` +
-    JSON.stringify(averageData) +
-    `; export default averageData`,
-  "utf-8"
-);
+// import fs from "fs";
+// const averageData = {
+//   dataPhiAverage: newPhiAverageArray,
+//   dataThetaAverage: newThetaAverageArray,
+//   dataPsiAverage: newPsiAverageArray,
+// }
+// fs.writeFileSync(
+//   `./Data/averageData.js`,
+//   `const averageData =  ` +
+//     JSON.stringify(averageData) +
+//     `; export default averageData`,
+//   "utf-8"
+// );

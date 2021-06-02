@@ -2,32 +2,44 @@ import socketIOClient from "socket.io-client";
 import autonomy from "ardrone-autonomy";
 import fs from "fs";
 
+const folderName = "1per15/target0koma5";
+const fileName = "psi5";
+
 var angleData = [
   [], // Time
   [], // Phi
   [], // Theta
   [], // Psi
 ];
-const fileName = "psi_5";
+var EKFData1 = [
+  [], // Time
+  [], // X
+  [], // Y
+  [], // Yaw
+];
 
-// console.log("CONNECTING...");
-// var quadrotor1 = arDrone.createClient({ ip: "192.168.1.2" });
-// // var quadrotor2 = arDrone.createClient({ ip: "192.168.1.9" });
-// var control1 = new autonomy.Controller(quadrotor1);
-// // var control2 = new autonomy.Controller(quadrotor2);
+var EKFData2 = [
+  [], // Time
+  [], // X
+  [], // Y
+  [], // Yaw
+];
 
 // quadrotor1.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
 // quadrotor1.config("general:navdata_options", 777060865); // turn on GPS
 // quadrotor2.config("general:navdata_demo", "FALSE"); // get back all data the copter can send
 // quadrotor2.config("general:navdata_options", 777060865); // turn on GPS
-var [client, control, mission] = autonomy.createMission({ ip: "192.168.1.2" }, 1);
+var [client1, control1, mission1] = autonomy.createMission({
+  ip: "192.168.1.9",
+});
 
 console.log("SUCCESS CONNECTING");
 
 const SOCKET_SERVER_URL = "http://localhost:4000";
 const NAVDATA_EVENT = "NAVDATA_EVENT";
 const COMMAND_EVENT = "COMMAND_EVENT";
-const EKF_EVENT = "EKF_EVENT";
+const EKF_EVENT1 = "EKF_EVENT1";
+const EKF_EVENT2 = "EKF_EVENT2";
 
 const connectionCommand = socketIOClient(SOCKET_SERVER_URL, {
   query: "COMMAND",
@@ -53,13 +65,32 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "START":
           try {
             console.log("STARTING...");
-            mission.run(function (err, result) {
+            EKFData1 = [
+              [], // time
+              [], // X
+              [], // Y
+              [], // Yaw
+            ];
+            mission1.run(function (err, result) {
               if (err) {
                 console.trace("Oops, something bad happened: %s", err.message);
-                mission.client().stop();
-                mission.client().land();
+                mission1.client().stop();
+                mission1.client().land();
               } else {
                 console.log("Mission success!");
+                var dataSaved = {
+                  time: EKFData1[0],
+                  xPos: EKFData1[1],
+                  yPos: EKFData1[2],
+                  yaw: EKFData1[3],
+                };
+                fs.writeFileSync(
+                  `./Data/${folderName}/${fileName}.js`,
+                  `const ${fileName} =  ` +
+                    JSON.stringify(dataSaved) +
+                    `; export default ${fileName}`,
+                  "utf-8"
+                );
                 process.exit(0);
               }
             });
@@ -71,7 +102,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "CALIBRATE":
           try {
             console.log("CALIBRATING...");
-            mission.takeoff().zero().land();
+            mission1.takeoff().zero().land();
           } catch (error) {
             console.error("ERROR WHEN STARTING!");
           }
@@ -80,7 +111,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "MISSION":
           try {
             console.log("MISSION");
-            mission
+            mission1
               .takeoff()
               .zero() // Sets the current state as the reference
               // .cw(45)
@@ -96,9 +127,9 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "PHI":
           try {
             console.log("PHI");
-            client.takeoff();
+            client1.takeoff();
 
-            client
+            client1
               .after(5000, function () {
                 angleData = [
                   [], // Time
@@ -107,7 +138,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   [], // Psi
                 ];
                 console.log("PHI");
-                this.left(1);
+                this.left(0.5);
               })
               .after(1000, function () {
                 console.log("stop");
@@ -120,7 +151,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   psi: angleData[3],
                 };
                 fs.writeFileSync(
-                  `./Data/${fileName}.js`,
+                  `./Data/${folderName}/${fileName}.js`,
                   `const ${fileName} =  ` +
                     JSON.stringify(dataSaved) +
                     `; export default ${fileName}`,
@@ -140,9 +171,9 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "THETA":
           try {
             console.log("THETA");
-            client.takeoff();
+            client1.takeoff();
 
-            client
+            client1
               .after(5000, function () {
                 angleData = [
                   [], // Time
@@ -151,7 +182,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   [], // Psi
                 ];
                 console.log("FRONT");
-                this.front(1);
+                this.front(0.5);
               })
               .after(1000, function () {
                 console.log("stop");
@@ -163,19 +194,19 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   psi: angleData[3],
                 };
                 fs.writeFileSync(
-                  `./Data/${fileName}.js`,
+                  `./Data/${folderName}/${fileName}.js`,
                   `const ${fileName} =  ` +
                     JSON.stringify(dataSaved) +
                     `; export default ${fileName}`,
                   "utf-8"
                 );
                 console.log("finish");
-              })
-              // .after(2000, function () {
-              //   console.log("land");
-                // this.stop();
-                // this.land();
-              // });
+              });
+            // .after(2000, function () {
+            //   console.log("land");
+            // this.stop();
+            // this.land();
+            // });
           } catch (error) {
             console.error("ERROR WHEN THETA!");
           }
@@ -184,9 +215,9 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
         case "PSI":
           try {
             console.log("PSI");
-            client.takeoff();
+            client1.takeoff();
 
-            client
+            client1
               .after(5000, function () {
                 angleData = [
                   [], // Time
@@ -194,7 +225,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   [], // Theta
                   [], // Psi
                 ];
-                this.clockwise(1);
+                this.clockwise(0.5);
               })
               .after(1000, function () {
                 console.log("stop");
@@ -206,7 +237,7 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
                   psi: angleData[3],
                 };
                 fs.writeFileSync(
-                  `./Data/${fileName}.js`,
+                  `./Data/${folderName}/${fileName}.js`,
                   `const ${fileName} =  ` +
                     JSON.stringify(dataSaved) +
                     `; export default ${fileName}`,
@@ -252,12 +283,11 @@ var droneState = {
 };
 
 var timeInitial = new Date().getTime();
-var time = 1;
+var time = 0;
 
-client.on("navdata", (navdata) => {
+client1.on("navdata", (navdata) => {
   if (navdata !== undefined) {
     demo = Object(navdata.demo);
-    // console.log(demo)
     droneState.psi = demo.clockwiseDegrees;
     droneState.phi = demo.leftRightDegrees;
     droneState.theta = demo.frontBackDegrees;
@@ -284,33 +314,41 @@ client.on("navdata", (navdata) => {
   }
 });
 
-const connectionEKFData = socketIOClient(SOCKET_SERVER_URL, {
-  query: "EKFDATA",
+const connectionEKFData1 = socketIOClient(SOCKET_SERVER_URL, {
+  query: "EKFDATA1",
 });
 
-var EKFState = {
+var EKFState1 = {
+  time: 0,
   xPos: 0,
   yPos: 0,
   zPos: 0,
   yaw: 0,
 };
 
-var timeEKF = 1;
+var timeEKF = 0;
 
-control.on("controlData", (ekfData) => {
+control1.on("controlData", (ekfData) => {
   if (ekfData !== undefined) {
-    EKFState.xPos = ekfData.state.x;
-    EKFState.yPos = ekfData.state.y;
-    EKFState.zPos = ekfData.state.z;
-    EKFState.yaw = ekfData.state.yaw;
+    EKFState1.xPos = ekfData.state.x;
+    EKFState1.yPos = ekfData.state.y;
+    EKFState1.zPos = ekfData.state.z;
+    EKFState1.yaw = ekfData.state.yaw;
 
     timeEKF += 1;
     if (timeEKF === 1) {
-      connectionEKFData.emit(EKF_EVENT, {
+      EKFState1.time =
+        Math.round((new Date().getTime() - timeInitial) / 10, 2) / 100;
+
+      connectionEKFData1.emit(EKF_EVENT1, {
         type: "EKFSTATE",
-        body: EKFState,
+        body: EKFState1,
         senderId: connectionCommand.id,
       });
+      EKFData1[0] = EKFState1.time;
+      EKFData1[1] = EKFState1.xPos;
+      EKFData1[2] = EKFState1.yPos;
+      EKFData1[3] = EKFState1.yaw;
       timeEKF = 0;
     }
   }

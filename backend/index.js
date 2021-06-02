@@ -11,13 +11,14 @@ const io = new socketIO.Server(server, {
 const PORT = 4000;
 const NAVDATA_EVENT = "NAVDATA_EVENT"
 const COMMAND_EVENT = "COMMAND_EVENT"
-const EKF_EVENT = "EKF_EVENT"
+const EKF_EVENT1 = "EKF_EVENT1"
+const EKF_EVENT2 = "EKF_EVENT2"
 
 io.on("connection", (socket) => {
-  console.log(`Client ${socket.id} connected`);
-
+  
   // Join a conversation
   const { type } = socket.handshake.query;
+  console.log(`Client type: ${type} -id:${socket.id} connected`);
   socket.join(type);
 
   // Listen for new messages
@@ -33,15 +34,21 @@ io.on("connection", (socket) => {
     console.log('Data', data)
   });
 
-  socket.on(EKF_EVENT, (data) => {
-    io.in(type).emit(EKF_EVENT, data);
-    console.log('---EMIT DATA EKF---')
-    console.log('Data', data)
+  socket.on(EKF_EVENT1, (data) => {
+    io.in(type).emit(EKF_EVENT1, data);
+    // console.log('---EMIT DATA EKF1---')
+    // console.log('Data', data)
+  });
+
+  socket.on(EKF_EVENT2, (data) => {
+    io.in(type).emit(EKF_EVENT2, data);
+    // console.log('---EMIT DATA EKF2---')
+    // console.log('Data', data)
   });
 
   // Leave the room if the user closes the socket
   socket.on("disconnect", () => {
-    console.log(`Client ${socket.id} diconnected`);
+    console.log(`Client type: ${type} -id: ${socket.id} diconnected`);
     socket.leave(type);
   });
 });

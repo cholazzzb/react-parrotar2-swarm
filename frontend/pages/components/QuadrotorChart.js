@@ -6,7 +6,7 @@ function QuadrotorChart({ data, yLabel }) {
     <ResponsiveLine
       data={data}
       margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-      xScale={{ type: "linear"}}
+      xScale={{ type: "point"}}
       yScale={{
         type: "linear",
         min: "auto",
