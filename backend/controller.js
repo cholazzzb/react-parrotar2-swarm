@@ -1,5 +1,5 @@
 import socketIOClient from "socket.io-client";
-import autonomy from "ardrone-autonomy";
+import autonomy, { control } from "ardrone-autonomy";
 import fs from "fs";
 
 const folderName = "1per15/target0koma5";
@@ -253,6 +253,54 @@ connectionCommand.on(COMMAND_EVENT, (data) => {
           }
           break;
 
+        case "X1Y0":
+          try {
+            client1.after(5000, function () {
+              control1.go({ x: 1, y: 0 });
+            });
+            // control1.hover();
+            // control1.land();
+          } catch (error) {
+            console.error("Error in X1Y0. Error :", error);
+          }
+          break;
+        case "X0Y1":
+          try {
+            control1.go({ x: 0, y: 1 });
+            // control1.hover();
+            // control1.land();
+          } catch (error) {
+            console.error("Error in X0Y1. Error: ", error);
+          }
+          break;
+
+        case "X0Y0":
+          try {
+            control1.go({ x: 0, y: 0 });
+            // control1.hover();
+            // control1.land();
+          } catch (error) {
+            console.error("Error in X0Y1. Error: ", error);
+          }
+          break;
+
+        case "TAKEOFF":
+          try {
+            client1.takeoff(); // control1.hover();
+            // control1.land();
+          } catch (error) {
+            console.error("Error in X0Y1. Error: ", error);
+          }
+          break;
+
+        case "LAND":
+          try {
+            client1.land(); // control1.hover();
+            // control1.land();
+          } catch (error) {
+            console.error("Error in X0Y1. Error: ", error);
+          }
+          break;
         default:
           break;
       }
