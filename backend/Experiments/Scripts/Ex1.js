@@ -95,50 +95,62 @@ control2.on("controlData", (ekfData) => {
   }
 });
 
-var isFinished = false;
-var targetX = 0.1;
+var targetX1 = 0;
+var targetX2 = 0;
+
+function intervaControl1() {
+  targetX1 = Math.round((targetX1 + 1) * 10) / 10;
+  control1.go({ x: targetX1, y: 0 });
+
+  if (targetX1 == 2) {
+    client1.stop()
+    client1.land();
+    clearInterval(this);
+  }
+}
+
+function intervalControl2() {
+  targetX2 = Math.round((targetX2 + 1) * 10) / 10;
+  control2.go({ x: targetX2, y: 0 });
+
+  if (targetX2 == 2) {
+    client2.stop()
+    client2.land();
+    // var dataSaved = {
+    //   EKF1: {
+    //     time: EKFData1[0],
+    //     xPos: EKFData1[1],
+    //     yPos: EKFData1[2],
+    //     zPos: EKFData1[3],
+    //     yaw: EKFData1[4],
+    //   },
+    //   EKF2: {
+    //     time: EKFData2[0],
+    //     xPos: EKFData2[1],
+    //     yPos: EKFData2[2],
+    //     zPos: EKFData2[3],
+    //     yaw: EKFData2[4],
+    //   },
+    // };
+    // fs.writeFileSync(
+    //   `${folderName}/${fileName}.js`,
+    //   `const ${fileName} =  ` +
+    //     JSON.stringify(dataSaved) +
+    //     `; export default ${fileName}`,
+    //   "utf-8"
+    // );
+    clearInterval(this);
+  }
+}
 
 try {
-  client2.takeoff();
   client1.takeoff();
+  client2.takeoff();
   client1.after(5000, () => {
-    while (!isFinished) {
-      setTimeout(() => {
-        control1.go({ x: targetX, y: 0 });
-        control2.go({ x: targetX, y: 0 });
-
-        targetX = targetX + 0.1;
-      }, 1000);
-
-      if (targetX == 1) {
-        isFinished = true;
-      }
-    }
-    client1.land();
-    client2.land();
-    var dataSaved = {
-      EKF1: {
-        time: EKFData1[0],
-        xPos: EKFData1[1],
-        yPos: EKFData1[2],
-        zPos: EKFData1[3],
-        yaw: EKFData1[4],
-      },
-      EKF2: {
-        time: EKFData2[0],
-        xPos: EKFData2[1],
-        yPos: EKFData2[2],
-        zPos: EKFData2[3],
-        yaw: EKFData2[4],
-      },
-    };
-    fs.writeFileSync(
-      `${folderName}/${fileName}.js`,
-      `const ${fileName} =  ` +
-        JSON.stringify(dataSaved) +
-        `; export default ${fileName}`,
-      "utf-8"
-    );
+    setInterval(intervaControl1, 1000);
+  });
+  client2.after(5000, () => {
+    setInterval(intervalControl2, 1000);
   });
 } catch (error) {
   console.log(`EXPERIMENT FAILED. Error : ${error}`);

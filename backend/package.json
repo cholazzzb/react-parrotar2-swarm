@@ -9,7 +9,8 @@
     "controller": "nodemon ./controller.js",
     "test": "nodemon ./delme/ekf.js",
     "fly" : "nodemon ./delme/tryHover.js",
-    "ex1" : "nodemon ./Experiments/Scripts/Ex1.js"
+    "ex1" : "node ./Experiments/Scripts/Ex1.js",
+    "land" : "node ./Experiments/Scripts/Land.js"
   },
   "author": "",
   "dependencies": {
