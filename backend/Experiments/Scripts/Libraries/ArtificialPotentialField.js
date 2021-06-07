@@ -12,9 +12,9 @@ function calculateEucDistance(Pos1, Pos2) {
  * @param {String} type = plus/minus/times
  * @param {Float or Array} operator1
  * @param {Array} operator2
- * @return
+ * @return [vector]
  */
-function vectorOperation(type, operator1, operator2) {
+function calculateWithVector(type, operator1, operator2) {
   let result = [];
   switch (type) {
     case "plus":
@@ -52,23 +52,34 @@ function ArtificialPotentialField() {
   };
   this.Agents_Position = [];
   this.Obstacles_Position = [];
-  this.Targets_Position = []; // Only 1 Target
+  this.Targets_Position = []; // Only 1 Target and Assume the target are static
 }
 
 ArtificialPotentialField.prototype.calculateTargetsPotentialForce =
-  function () {
+  function (Agents_Velocity) {
     let forces = [];
     this.Agents_Position.forEach((Agent_Position) => {
       let force = 0;
-      if (
-        calculateEucDistance(Agent_Position, this.Targets_Position[0]) <
-        this.Constants.tdr
-      ) {
-        //
+      let distance = calculateEucDistance(
+        Agent_Position,
+        this.Targets_Position[0]
+      );
+      let distanceVector = calculateWithVector(
+        Agent_Position,
+        this.Targets_Position[0]
+      );
+      if (distance < this.Constants.tdr) {
+        let coef = -self.Parameters.ktp / self.Constants.tdr;
+        force = calculateWithVector("times", coef, distanceVector);
       } else {
+        let distanceVectorUnit = calculateWithVector(1 / distance, distanceVector);
+        force = calculateWithVector(-self.Parameters.ktp, distanceVectorUnit);
       }
+
+      force = force - calculateWithVector(self.Parameters.ktvi, Agents_Velocity)
       forces.push(force);
     });
+    return forces
   };
 
 ArtificialPotentialField.prototype.calculateObstaclesPotentialForce =
