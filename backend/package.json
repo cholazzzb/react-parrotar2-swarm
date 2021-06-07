@@ -10,7 +10,8 @@
     "test": "nodemon ./delme/ekf.js",
     "fly" : "nodemon ./delme/tryHover.js",
     "ex1" : "node ./Experiments/Scripts/Ex1.js",
-    "land" : "node ./Experiments/Scripts/Land.js"
+    "land" : "node ./Experiments/Scripts/Land.js",
+    "testVS": "node ./Experiments/Scripts/Libraries/test_VirtualStructure.js"
   },
   "author": "",
   "dependencies": {
