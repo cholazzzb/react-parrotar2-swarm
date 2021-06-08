@@ -26,7 +26,10 @@ APF.setTargetsPosition([
 console.log(APF.Targets_Position);
 
 // Test 4
-const TPF = APF.calculateTargetsPotentialForce([1, 2, 3]);
+const TPF = APF.calculateTargetsPotentialForce([
+  [1, 2, 3],
+  [1, 2, 3],
+]);
 console.log(TPF);
 
 // Test 5
@@ -34,5 +37,8 @@ const OPF = APF.calculateObstaclesPotentialForce();
 console.log(OPF);
 
 // Test 6
-const TAPF = APF.calculateTotalForce();
+const TAPF = APF.calculateTotalForce([
+  [1, 2, 3],
+  [1, 2, 3],
+]);
 console.log(TAPF);
