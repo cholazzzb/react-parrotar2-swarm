@@ -1,10 +1,6 @@
-function radToDeg(rad) {
-  return (rad * 180) / Math.PI;
-}
+import { calculateEucDistance, calculateWithVector } from "./Util.js";
 
-function degToRad(deg) {
-  return (deg * Math.PI) / 180;
-}
+var mass = 0.445; // kg (mass of Parrot AR Drone)
 
 function getShapePoints(shape_type) {
   let shape_points = [];
@@ -41,6 +37,18 @@ function VirtualStructure() {
   this.Current_Positions = []; // Current Quadrotors Position in Real World
 }
 
+VirtualStructure.prototype.setCurrentVSPoints = function (Current_VS_Points) {
+  this.VS_Points = Current_VS_Points;
+};
+
+VirtualStructure.prototype.calculateFRPVel = function (APFForce) {
+  let velocity = [0, 0, 0];
+
+  return calculate;
+};
+
+VirtualStructure.prototype.calculateNewFRPPoint = function (APFForce) {};
+
 /**
  *
  * @param {Array of Float} FRP_Position = [xPos, yPos, zPos]
@@ -69,12 +77,6 @@ VirtualStructure.prototype.calculateVSPoint = function (FRP_Position) {
     });
     newVSPoints.push(newVSPoint);
   });
-};
-
-VirtualStructure.prototype.calculateNewFRPPoint = function () {};
-
-VirtualStructure.prototype.setCurrentVSPoints = function (Current_VS_Points) {
-  this.VS_Points = Current_VS_Points;
 };
 
 VirtualStructure.prototype.calculateNewVSPoint = function (APFForce) {};
