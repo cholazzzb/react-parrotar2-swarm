@@ -55,35 +55,84 @@ function ArtificialPotentialField() {
   this.Targets_Position = []; // Only 1 Target and Assume the target are static
 }
 
-ArtificialPotentialField.prototype.calculateTargetsPotentialForce =
-  function (Agents_Velocity) {
+ArtificialPotentialField.prototype.setAgentsPosition = function (
+  New_Agents_Position
+) {
+  this.Agents_Position = New_Agents_Position;
+};
+ArtificialPotentialField.prototype.setObstaclesPosition = function (
+  New_Obstacles_Position
+) {
+  this.Obstacles_Position = New_Obstacles_Position;
+};
+ArtificialPotentialField.prototype.setTargetsPosition = function (
+  New_Targets_Position
+) {
+  this.Targets_Position = New_Targets_Position;
+};
+
+ArtificialPotentialField.prototype.calculateTargetsPotentialForce = function (
+  Agents_Velocity
+) {
+  let forces = [];
+  this.Agents_Position.forEach((Agent_Position) => {
+    let force = 0;
+    let distance = calculateEucDistance(
+      Agent_Position,
+      this.Targets_Position[0]
+    );
+    let distanceVector = calculateWithVector(
+      "minus",
+      Agent_Position,
+      this.Targets_Position[0]
+    );
+    if (distance < this.Constants.tdr) {
+      let coef = -this.Parameters.ktp / this.Constants.tdr;
+      force = calculateWithVector("times", coef, distanceVector);
+    } else {
+      let distanceVectorUnit = calculateWithVector(
+        1 / distance,
+        distanceVector
+      );
+      force = calculateWithVector(-this.Parameters.ktp, distanceVectorUnit);
+    }
+
+    force = force - calculateWithVector(this.Parameters.ktvi, Agents_Velocity);
+    forces.push(force);
+  });
+  return forces;
+};
+
+// Formation Radiud in VS (?)
+ArtificialPotentialField.prototype.calculateObstaclesPotentialForce =
+  function () {
     let forces = [];
     this.Agents_Position.forEach((Agent_Position) => {
       let force = 0;
-      let distance = calculateEucDistance(
-        Agent_Position,
-        this.Targets_Position[0]
-      );
-      let distanceVector = calculateWithVector(
-        Agent_Position,
-        this.Targets_Position[0]
-      );
-      if (distance < this.Constants.tdr) {
-        let coef = -self.Parameters.ktp / self.Constants.tdr;
-        force = calculateWithVector("times", coef, distanceVector);
-      } else {
-        let distanceVectorUnit = calculateWithVector(1 / distance, distanceVector);
-        force = calculateWithVector(-self.Parameters.ktp, distanceVectorUnit);
-      }
-
-      force = force - calculateWithVector(self.Parameters.ktvi, Agents_Velocity)
-      forces.push(force);
+      this.Obstacles_Position.forEach((Obstacle_Position) => {
+        // If the obstacle detected ( distance to obstacle less than odr/obstacle detectring range)
+        let distance = calculateEucDistance(Agent_Position, Obstacle_Position);
+        let distanceVector = calculateWithVector(
+          "minus",
+          Agent_Position,
+          Obstacle_Position
+        );
+        let distanceVectorUnit = calculateWithVector(
+          1 / distance,
+          distanceVector
+        );
+        if (distance < this.Constants.odr) {
+          let coef =
+            ((1 / distance - 1 / this.Parameters.odr) * this.Parameters.kobp1) /
+              distance /
+              distance -
+            this.Parameters.kobp2 * (distance - this.Parameters.odr);
+          force = calculateWithVector("times", coef, distanceVectorUnit);
+        }
+      });
     });
-    return forces
+    return forces;
   };
-
-ArtificialPotentialField.prototype.calculateObstaclesPotentialForce =
-  function () {};
 
 ArtificialPotentialField.prototype.calculateTotalForce = function () {
   // TPF = Target Potential Force
