@@ -1,8 +1,8 @@
 import autonomy from "ardrone-autonomy";
 
 /**
- * EXPERIMENT 1
- * Control API -> go({x: targetX1, y: 0})
+ * EXPERIMENT 2
+ * Control API -> forward(1)
  */
 
 var [client1, control1, mission1] = autonomy.createMission({
@@ -13,15 +13,10 @@ console.log("success connecting");
 
 try {
   client1.takeoff();
-  client1.after(5000, () => {
-    control1.go({ x: 0.8, y: 0 });
-  });
+  // client1.after(5000, () => {
+  //   control1.forward(1);
+  // });
 } catch (error) {
   console.log(`EXPERIMENT FAILED. Error : ${error}`);
   client1.land();
 }
-
-// Result : 
-/**
- * Takeoff doesn't happen vertically...
- */

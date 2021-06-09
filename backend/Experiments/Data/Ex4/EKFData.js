@@ -1,0 +1,1 @@
+const EKFData =  {"EKF1":{"time":[],"xPos":[],"yPos":[],"zPos":[],"yaw":[]},"EKF2":{"time":[],"xPos":[],"yPos":[],"zPos":[],"yaw":[]}}; export default EKFData

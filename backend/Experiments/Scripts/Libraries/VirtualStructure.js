@@ -1,6 +1,4 @@
-import { calculateEucDistance, calculateWithVector } from "./Util.js";
-
-var mass = 0.445; // kg (mass of Parrot AR Drone)
+import { mass, calculateEucDistance, calculateWithVector } from "./Util.js";
 
 function getShapePoints(shape_type) {
   let shape_points = [];
@@ -29,12 +27,12 @@ function VirtualStructure() {
    * Quadrotor 2 = ()
    *
    */
-  console.log("build");
   this.Heading_Angle = 0; // Yaw / Phi in Degree
   this.Shape_Points = getShapePoints("line"); // Agent Position from Formation Reference Point
   this.Formation_Reference_Point = []; // Formation Reference Point
   this.VS_Points = []; // Current Quadrotors Position in VS
   this.Current_Positions = []; // Current Quadrotors Position in Real World
+  this.Movement_Range = 0.1
 }
 
 VirtualStructure.prototype.setCurrentVSPoints = function (Current_VS_Points) {
@@ -42,12 +40,12 @@ VirtualStructure.prototype.setCurrentVSPoints = function (Current_VS_Points) {
 };
 
 VirtualStructure.prototype.calculateFRPVel = function (APFForce) {
-  let velocity = [0, 0, 0];
-
-  return calculate;
+  return calculateWithVector('times', 1/mass, APFForce);
 };
 
-VirtualStructure.prototype.calculateNewFRPPoint = function (APFForce) {};
+VirtualStructure.prototype.calculateNewFRPPoint = function (APFForce) {
+  let velocity = this.calculateNewFRPPoint(APFForce)
+};
 
 /**
  *
@@ -58,7 +56,6 @@ VirtualStructure.prototype.calculateNewFRPPoint = function (APFForce) {};
  * return new VS Points : [VSPoint1, VSPoint2]. VSPointx = [xPos, yPos, constant]
  */
 VirtualStructure.prototype.calculateVSPoint = function (FRP_Position) {
-  console.log("Success");
   let transformationMatrix = [
     [Math.cos(this.Heading_Angle), Math.sin(this.Heading_Angle), 0], //x
     [-Math.sin(this.Heading_Angle), Math.cos(this.Heading_Angle), 0], //y
