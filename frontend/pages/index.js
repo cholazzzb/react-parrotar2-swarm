@@ -10,13 +10,18 @@ import Controller from "./components/Controller";
 import QuadrotorChart from "./components/QuadrotorChart";
 import QuadrotorPosition from "./components/QuadrotorPosition";
 
-// import DataProcess from "../../backend/DataProcess";
-import processedData from "../../backend/Data/1per15/target1/processedData.js"
+// Data for modelling attitude conroller
+import processedData from "../../backend/Data/1per15/target1/processedData.js";
+
+// EKF Data when trying takeoff -> zero -> forward(0.5 ... , 1.5)
+import EKFData_50cmForwardAPI from "../../backend/Experiments/Data/Ex4/EKFData_50cmForwardAPI";
+import EKFData_100cmForwardAPI from "../../backend/Experiments/Data/Ex4/EKFData_100cmForwardAPI";
+import EKFData_150cmForwardAPI from "../../backend/Experiments/Data/Ex4/EKFData_150cmForwardAPI";
 
 const NAVDATA_EVENT = "NAVDATA_EVENT";
 const COMMAND_EVENT = "COMMAND_EVENT";
 const EKF_EVENT1 = "EKF_EVENT1";
-const EKF_EVENT2 = "EKF_EVENT2"
+const EKF_EVENT2 = "EKF_EVENT2";
 
 export default function Home() {
   const [slide, setSlide] = useState(0);
@@ -24,7 +29,7 @@ export default function Home() {
   const [commandData, sendCommandData] = useSocket("COMMAND", COMMAND_EVENT);
   const [navData, setNavData] = useSocket("NAVDATA", NAVDATA_EVENT);
   const [ekfData1, setEkfData1] = useSocket("EKFDATA1", EKF_EVENT1);
-  const [ekfData2, setEkfData2] = useSocket("EKFDATA2", EKF_EVENT2)
+  const [ekfData2, setEkfData2] = useSocket("EKFDATA2", EKF_EVENT2);
 
   return (
     <div>
@@ -75,15 +80,16 @@ export default function Home() {
             Change Slide
           </Button>
 
-          <Grid
+          {/* <Grid
             bgColor="gray.600"
             p="3"
             h="1200px"
             templateRows="repeat(3, 1fr)"
             templateColumns="repeat(4, 1fr)"
             gap={4}
-          >
-            <GridItem colSpan={2} bg="papayawhip" color="black">
+          > */}
+          {/* Data for modelling attitude controller */}
+          {/* <GridItem colSpan={2} bg="papayawhip" color="black">
               <QuadrotorChart data={processedData.phi} yLabel="Phi" />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
@@ -91,15 +97,35 @@ export default function Home() {
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
               <QuadrotorChart data={processedData.theta} yLabel="Theta" />
+            </GridItem> */}
+
+          {/* </Grid> */}
+          <Grid
+            bgColor="gray.600"
+            p="3"
+            h="1200px"
+            templateRows="repeat(3, 1fr)"
+            templateColumns="repeat(1, 1fr)"
+            gap={4}
+          >
+            {/* Data from EKF API forward (0.5 , ..., 1.5) */}
+            <GridItem colSpan={2} bg="papayawhip" color="black">
+              <QuadrotorChart
+                data={EKFData_50cmForwardAPI}
+                yLabel="forwardAPI(50cm)"
+              />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.thetaAverage} yLabel="Theta Average" />
+              <QuadrotorChart
+                data={EKFData_100cmForwardAPI}
+                yLabel="forwardAPI(100cm)"
+              />
             </GridItem>
             <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.psi} yLabel="Psi" />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.psiAverage} yLabel="Psi Average" />
+              <QuadrotorChart
+                data={EKFData_150cmForwardAPI}
+                yLabel="forwardAPI(150cm)"
+              />
             </GridItem>
           </Grid>
         </>

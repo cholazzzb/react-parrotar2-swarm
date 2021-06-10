@@ -7,7 +7,9 @@ import fs from "fs";
  */
 
 const folderName = "Experiments/Data/Ex4";
-const fileName = "EKFData_150cmForwardAPI";
+const fileName = "EKFData_intervalforward_1m";
+const timeInterval = 3000; // ms
+var counter = 0;
 
 var [client1, control1, mission1] = autonomy.createMission({
   ip: "192.168.1.9",
@@ -39,14 +41,6 @@ var EKFData1Array = [
 var timeInitial = new Date().getTime();
 var time = 0;
 
-// Checking the battery
-// client1.on("navdata", (navdata) => {
-//   if (navdata != undefined) {
-//     let demo = Object(navdata.demo);
-//     console.log("Battery : ", demo.batteryPercentage);
-//   }
-// });
-
 control1.on("controlData", (ekfData) => {
   if (ekfData !== undefined) {
     time = Math.round((new Date().getTime() - timeInitial) / 10, 2) / 100;
@@ -62,20 +56,17 @@ control1.on("controlData", (ekfData) => {
   }
 });
 
-try {
-  client1.takeoff();
-  client1.after(5000, () => {
-    console.log("Zeroing");
-    control1.zero();
-  });
-  client1.after(2000, () => {
-    console.log("Forward!");
-    control1.forward(1.5);
-  });
-  client1.after(3000, () => {
+function intervaControl1() {
+  counter++;
+    control1.forward(1);
+
+  if (counter == 2) {
+    client1.stop();
+    client1.land();
+
     fs.writeFileSync(
       `${folderName}/${fileName}.js`,
-      `const ${fileName} = ` +
+      `const ${fileName} =  ` +
         JSON.stringify(EKFData1) +
         `; export default ${fileName}`,
       "utf-8"
@@ -87,8 +78,15 @@ try {
         `; export default ${fileName}_array`,
       "utf-8"
     );
-    client1.land();
-    console.log("Data saved!");
+
+    clearInterval(this);
+  }
+}
+
+try {
+  client1.takeoff();
+  client1.after(5000, () => {
+    setInterval(intervaControl1, timeInterval);
   });
 } catch (error) {
   console.log(`EXPERIMENT FAILED. Error : ${error}`);
