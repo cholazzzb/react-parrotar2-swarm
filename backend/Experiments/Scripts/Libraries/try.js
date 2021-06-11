@@ -47,7 +47,7 @@ import async from "async";
 //   }
 // );
 
-console.log("WHUT")
-setTimeout(() => {
-    console.log('nani')
-}, 5000);
+console.log(`first`)
+setInterval(() => {
+    console.log(`when`)
+}, 1000);

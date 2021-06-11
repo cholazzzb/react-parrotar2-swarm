@@ -18,7 +18,7 @@ const ExMap1 = new Map(
 console.log(ExMap1.history);
 
 // test 2
-ExMap1.addDataToHistory([
+ExMap1.addDataToHistory(
   {
     time: 0.3,
     xPos: 0.1,
@@ -26,14 +26,8 @@ ExMap1.addDataToHistory([
     zPos: 1,
     yaw: 1,
   },
-  {
-    time: 0.3,
-    xPos: 2.1,
-    yPos: 0.1,
-    zPos: 1,
-    yaw: 1,
-  },
-]);
+  1
+);
 console.log(ExMap1.history);
 console.log(ExMap1.history.xPos[0].data);
 console.log(ExMap1.history.xPos[1].data);

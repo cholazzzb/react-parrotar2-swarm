@@ -14,19 +14,19 @@ function Map(initialAgentsPosition, obstaclesPosition, targetsPosition) {
 
   this.initialAgentsPosition.forEach((agentInitPos, index) => {
     this.history.xPos.push({
-      id: `Quad${index}`,
+      id: `Quad${index + 1}`,
       data: [],
     });
     this.history.yPos.push({
-      id: `Quad${index}`,
+      id: `Quad${index + 1}`,
       data: [],
     });
     this.history.zPos.push({
-      id: `Quad${index}`,
+      id: `Quad${index + 1}`,
       data: [],
     });
     this.history.yaw.push({
-      id: `Quad${index}`,
+      id: `Quad${index + 1}`,
       data: [],
     });
   });
@@ -34,40 +34,33 @@ function Map(initialAgentsPosition, obstaclesPosition, targetsPosition) {
 
 /**
  *
- * @param {Array of Object} newDatas
+ * @param {Object} newData
+ * @param {Number} quadIndex
  * format:
- * newDatas = [{
-  * time: Number,
-  * xPos: Number,
-  * yPos: Number,
-  * zPos: Number,
-  * yaw: Number // degree
- * }, {
-  * time: Number,
-  * xPos: Number,
-  * yPos: Number,
-  * zPos: Number,
-  * yaw: Number // degree
- * }]
+ * newDatas = {
+ * time: Number,
+ * xPos: Number,
+ * yPos: Number,
+ * zPos: Number,
+ * yaw: Number // degree
+ * }
  */
-Map.prototype.addDataToHistory = function (newDatas) {
-  newDatas.forEach((newData, index) => {
-    this.history.xPos[index].data.push({
-      x: newData.time,
-      y: newData.xPos,
-    });
-    this.history.yPos[index].data.push({
-      x: newData.time,
-      y: newData.yPos,
-    });
-    this.history.zPos[index].data.push({
-      x: newData.time,
-      y: newData.zPos,
-    });
-    this.history.yaw[index].data.push({
-      x: newData.time,
-      y: newData.yaw,
-    });
+Map.prototype.addDataToHistory = function (newData, quadIndex) {
+  this.history.xPos[quadIndex - 1].data.push({
+    x: newData.time,
+    y: newData.xPos,
+  });
+  this.history.yPos[quadIndex - 1].data.push({
+    x: newData.time,
+    y: newData.yPos,
+  });
+  this.history.zPos[quadIndex - 1].data.push({
+    x: newData.time,
+    y: newData.zPos,
+  });
+  this.history.yaw[quadIndex - 1].data.push({
+    x: newData.time,
+    y: newData.yaw,
   });
 };
 

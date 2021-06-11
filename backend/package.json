@@ -1,6 +1,6 @@
 {
   "name": "react-parrotar2-swarm-server",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "main": "index.js",
   "type": "module",
@@ -16,10 +16,11 @@
     "ex5": "node ./Experiments/Scripts/Ex5.js",
     "ex6": "node ./Experiments/Scripts/Ex6.js",
     "ex7": "node ./Experiments/Scripts/Ex7.js",
+    "ex8": "node ./Experiments/Scripts/Ex8.js",
     "land": "node ./Experiments/Scripts/Land.js",
     "testVS": "node ./Experiments/Scripts/Libraries/test_VirtualStructure.js"
   },
-  "author": "",
+  "author": "Nicholas Biantoro",
   "dependencies": {
     "ar-drone": "^0.3.3",
     "ardrone-autonomy": "^0.1.2",
