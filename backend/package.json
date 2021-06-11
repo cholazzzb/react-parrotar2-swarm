@@ -14,6 +14,7 @@
     "ex3": "node ./Experiments/Scripts/Ex3.js",
     "ex4": "node ./Experiments/Scripts/Ex4.js",
     "ex5": "node ./Experiments/Scripts/Ex5.js",
+    "ex6": "node ./Experiments/Scripts/Ex6.js",
     "land": "node ./Experiments/Scripts/Land.js",
     "testVS": "node ./Experiments/Scripts/Libraries/test_VirtualStructure.js"
   },
