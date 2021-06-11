@@ -1,9 +1,21 @@
+import autonomy from "ardrone-autonomy";
 import ArtificialPotentialField from "./ArtificialPotentialField.js";
 import VirtualStructure from "./VirtualStructure.js";
+import Map from "./Map.js";
 
 function FormationControl() {
-  this.VS = VirtualStructure();
-  this.APF = ArtificialPotentialField();
+  this.VS = new VirtualStructure();
+  this.APF = new ArtificialPotentialField();
+  this.Map = new Map();
+  var [client1, control1, mission1] = autonomy.createMission({
+    ip: "192.168.1.9",
+  });
+  var [client2, control2, mission2] = autonomy.createMission({
+    ip: "192.168.1.2",
+  });
+
+  this.quad1 = mission1;
+  this.quad2 = mission2;
 }
 
 FormationControl.prototype.calculateCommand = function (
