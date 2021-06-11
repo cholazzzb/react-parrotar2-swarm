@@ -55,3 +55,37 @@ export function calculateWithVector(type, operator1, operator2) {
 
   return result;
 }
+
+export function transToWorldFrame(position, yaw) {
+  let yawRad = degToRad(yaw);
+  let transMatrix = [
+    [Math.cos(yawRad), -Math.sin(yawRad), 0],
+    [Math.sin(yawRad), Math.cos(yawRad), 0],
+    [0, 0, 1],
+  ];
+  let newPos = [0, 0, 0];
+  transMatrix.forEach((vector, index) => {
+    newPos[index] =
+      vector[0] * position[0] +
+      vector[1] * position[1] +
+      vector[2] * position[2];
+  });
+  return newPos;
+}
+
+export function transToQuadFrame(position, yaw) {
+  let yawRad = degToRad(yaw);
+  let transMatrix = [
+    [Math.cos(yawRad), Math.sin(yawRad), 0],
+    [-Math.sin(yawRad), Math.cos(yawRad), 0],
+    [0, 0, 1],
+  ];
+  let newPos = [0, 0, 0];
+  transMatrix.forEach((vector, index) => {
+    newPos[index] =
+      vector[0] * position[0] +
+      vector[1] * position[1] +
+      vector[2] * position[2];
+  });
+  return newPos;
+}
