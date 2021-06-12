@@ -15,8 +15,8 @@ const setup = {
     [3, 5, 2],
   ],
   targetsPosition: [[10, 1, 1]],
-  fileName: "",
-  folderName: "",
+  fileName: "Ex8Data",
+  folderName: "./",
 };
 
 try {
