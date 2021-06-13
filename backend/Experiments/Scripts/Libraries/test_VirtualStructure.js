@@ -5,7 +5,7 @@ const VS = new VirtualStructure();
 VS.calculateVSPoint();
 
 // Test 2
-VS.calculateNewFRPPoint();
+VS.calculateNewFRPPoint([10, 1, 0]);
 
 // Test 3
 VS.setCurrentVSPoints();

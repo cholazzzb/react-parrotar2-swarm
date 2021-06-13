@@ -10,3 +10,5 @@ function QuadModel(type) {
       break;
   }
 }
+
+export default QuadModel

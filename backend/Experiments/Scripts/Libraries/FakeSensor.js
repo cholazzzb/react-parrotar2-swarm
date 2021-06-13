@@ -7,8 +7,10 @@ function FakeSensor() {
   this.positions = this.initialPos;
 }
 
-FakeSensor.prototype.genereateFakePosData = function () {
+FakeSensor.prototype.generateFakePosData = function () {
   this.positions[0][0] = this.positions[0][0] + this.maxSpeed;
   this.positions[1][0] = this.positions[1][0] + this.maxSpeed;
   return this.positions;
 };
+
+export default FakeSensor

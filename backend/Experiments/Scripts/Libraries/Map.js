@@ -15,6 +15,8 @@ function Map(initialAgentsPosition, obstaclesPosition, targetsPosition) {
     yaw: [],
   };
 
+  this.currentPosition = [[], []];
+
   this.initialAgentsPosition.forEach((agentInitPos, index) => {
     let newData = {
       id: `Quad${index + 1}`,
@@ -81,6 +83,7 @@ Map.prototype.addControlDataToHistory = function (newData, quadIndex) {
     x: newData.time,
     y: newData.yaw,
   });
+  this.currentPosition[quadIndex] = [newData.xPos, newData.yPos, newData.zPos];
 };
 
 Map.prototype.saveDataHistory = function (folderName, fileName) {

@@ -4,6 +4,10 @@ import VirtualStructure from "./VirtualStructure.js";
 import Map from "./Map.js";
 import * as util from "./Util.js";
 
+// Only for simulation
+import FakeSensor from "./FakeSensor.js";
+var posData = new FakeSensor();
+
 function FormationControl(setup) {
   this.folderName = setup.folderName;
   this.fileName = setup.fileName;
@@ -21,20 +25,23 @@ function FormationControl(setup) {
     ip: setup.ipQuad2,
   });
 
+  this.emergencyClients = [client1, client2];
+
   console.log("Connected!");
 
   this.quads = [mission1, mission2];
 
-  var initialTime = new Date().getTime();
-  var time = 0;
+  this.initialTime = new Date().getTime();
+  this.time = 0;
 
   client1.on("navdata", (navdata) => {
     if (navdata != undefined) {
       let demo = Object(navdata.demo);
-      time = Math.round((new Date().getTime() - initialTime) / 10, 2) / 100;
+      this.time =
+        Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
       this.Map.addNavDataToHistory(
         {
-          time: time,
+          time: this.time,
           xVel: 0,
           yVel: 0,
         },
@@ -46,10 +53,11 @@ function FormationControl(setup) {
   client2.on("navdata", (navdata) => {
     if (navdata != undefined) {
       let demo = Object(navdata.demo);
-      time = Math.round((new Date().getTime() - initialTime) / 10, 2) / 100;
+      this.time =
+        Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
       this.Map.addNavDataToHistory(
         {
-          time: time,
+          time: this.time,
           xVel: 0,
           yVel: 0,
         },
@@ -60,10 +68,11 @@ function FormationControl(setup) {
 
   control1.on("controlData", (ekfData) => {
     if (ekfData != undefined) {
-      time = Math.round((new Date().getTime() - initialTime) / 10, 2) / 100;
+      this.time =
+        Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
       this.Map.addDataControlToHistory(
         {
-          time: time,
+          time: this.time,
           xPos: ekfData.state.x,
           yPos: ekfData.state.y,
           zPos: ekfData.state.z,
@@ -76,24 +85,50 @@ function FormationControl(setup) {
 
   control2.on("controlData", (ekfData) => {
     if (ekfData != undefined) {
-      if (ekfData != undefined) {
-        time = Math.round((new Date().getTime() - initialTime) / 10, 2) / 100;
-        this.Map.addControlDataToHistory(
-          {
-            time: time,
-            xPos: ekfData.state.x,
-            yPos: ekfData.state.y,
-            zPos: ekfData.state.z,
-            yaw: ekfData.state.yaw,
-          },
-          1
-        );
-      }
+      this.time =
+        Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+      this.Map.addControlDataToHistory(
+        {
+          time: this.time,
+          xPos: ekfData.state.x,
+          yPos: ekfData.state.y,
+          zPos: ekfData.state.z,
+          yaw: ekfData.state.yaw,
+        },
+        1
+      );
     }
   });
 }
 
-FormationControl.prototype.calculateCommand = function (Agents_Position) {
+FormationControl.prototype.saveFakePosData = function () {
+  let fakeData = posData.generateFakePosData();
+  this.time =
+    Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+
+  this.Map.addControlDataToHistory(
+    {
+      time: this.time,
+      xPos: fakeData[0][0],
+      yPos: fakeData[0][1],
+      zPos: fakeData[0][2],
+      yaw: 0,
+    },
+    0
+  );
+  this.Map.addControlDataToHistory(
+    {
+      time: this.time,
+      xPos: fakeData[1][0],
+      yPos: fakeData[1][1],
+      zPos: fakeData[1][2],
+      yaw: 0,
+    },
+    1
+  );
+};
+
+FormationControl.prototype.calculateCommands = function (Agents_Position) {
   let agentsCommands = [];
   let commands = [];
   let command = "";
@@ -103,6 +138,7 @@ FormationControl.prototype.calculateCommand = function (Agents_Position) {
 
   // Calculate APF if the quadrotor already on VS Point
   let numberQuadrotorOnVSPoint = 0;
+  console.log("nani", Agents_Position);
   Agents_Position.forEach((position, Agent_Index) => {
     let VS_Points = this.VS.VS_Points;
     let distance =
@@ -134,9 +170,9 @@ FormationControl.prototype.calculateCommand = function (Agents_Position) {
       let targetYaw = util.radToDeg(
         Math.atan2(distanceVector[0], distanceVector[1])
       );
-      let currentYaw = this.Map.history.yaw[Agent_Index].data[-1]
-      let yawError = targetYaw - currentYaw
-      if (yawError){
+      let currentYaw = this.Map.history.yaw[Agent_Index].data[-1];
+      let yawError = targetYaw - currentYaw;
+      if (yawError) {
         commands.push(["cw", commandValue]);
       }
 
@@ -146,6 +182,8 @@ FormationControl.prototype.calculateCommand = function (Agents_Position) {
   }
   return agentsCommands;
 };
+
+let iteration = 0;
 
 FormationControl.prototype.runCommands = function (commands, quadIndex) {
   commands.forEach((command) => {
@@ -173,29 +211,56 @@ FormationControl.prototype.runCommands = function (commands, quadIndex) {
   this.quads[quadIndex].run();
 };
 
-// Main Function
-FormationControl.prototype.execute = function () {
-  console.log("TakeOff");
-  this.quads[0].takeoff().zero();
-  this.quads[1].takeoff().zero();
-  this.quads[0].run();
-  this.quads[1].run();
-  setTimeout(() => {
+// Control Loop
+FormationControl.prototype.intervalControl = function (currentPositions) {
+  iteration++;
+  console.log("ITERATION", iteration);
+  // For simulation
+  this.saveFakePosData();
+
+  // If error, clean the mission._steps
+  // this.quads[0]._steps = []
+  // this.quads[1]._steps = []
+
+  // calculate and command the controller
+  let commands = this.calculateCommands(currentPositions);
+  this.runCommands(commands[0], 1);
+  this.runCommands(commands[1], 2);
+  if (iteration == 5) {
+    console.log("END");
     console.log("Land");
+    // If error, clean the mission._steps
+    // this.quads[0]._steps = []
+    // this.quads[1]._steps = []
     this.quads[0].land();
     this.quads[1].land();
     this.quads[0].run();
     this.quads[1].run();
-    this.Map.saveDataHistory(this.folderName, this.fileName)
-    console.log("Data Saved!")
-    // calculate and command the controller
-    // this.runCommands(this.calculateCommand(), 1);
-    // this.runCommands(this.calculateCommand(), 2);
-    // setInterval(() => {
-    //   this.runCommands(this.calculateCommand(), 1);
-    //   this.runCommands(this.calculateCommand(), 2);
-    // }, 2000);
-  }, 5000);
+    // this.Map.saveDataHistory(this.folderName, this.fileName);
+    // console.log("Data Saved!");
+    clearInterval(this);
+  }
+};
+
+// Main Function
+FormationControl.prototype.execute = function () {
+  try {
+    console.log("TakeOff");
+    this.quads[0].takeoff().zero();
+    this.quads[1].takeoff().zero();
+    this.quads[0].run();
+    this.quads[1].run();
+    setTimeout(() => {
+      setInterval(() => {
+        this.intervalControl(this.Map.currentPosition);
+      }, 2000);
+    }, 5000);
+  } catch (error) {
+    this.emergencyClients[0].land();
+    this.emergencyClients[1].land();
+    console.log(`EMERGENCY LANDING!!!!`);
+    console.log(`ERROR : ${error}`);
+  }
 };
 
 export default FormationControl;
