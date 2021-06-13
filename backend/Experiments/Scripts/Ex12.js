@@ -8,11 +8,11 @@ const setup = {
   ipQuad2 : "192.168.1.2",
   initialAgentsPosition: [
     [0, 0, 0],
-    [2, 0, 0],
+    [0, 2, 0],
   ],
   obstaclesPosition: [
-    [4, 5, 1],
-    [3, 5, 2],
+    [8, 0, 1],
+    [3, 2, 1],
   ],
   targetsPosition: [[10, 1, 1]],
   fileName: "Ex12Data",

@@ -2,7 +2,7 @@ function FakeSensor() {
   this.maxSpeed = 0.1;
   this.initialPos = [
     [0, 0, 0],
-    [2, 0, 0],
+    [0, 2, 0],
   ];
   this.positions = this.initialPos;
 }

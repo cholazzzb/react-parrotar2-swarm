@@ -30,6 +30,7 @@ function FormationControl(setup) {
   console.log("Connected!");
 
   this.quads = [mission1, mission2];
+  this.intervalId = "";
 
   this.initialTime = new Date().getTime();
   this.time = 0;
@@ -165,7 +166,7 @@ FormationControl.prototype.calculateCommands = function (Agents_Position) {
       let distanceVector = util.calculateWithVector(
         "minus",
         posGlobal,
-        VS_Points[Agents_Index]
+        VS_Points[Agent_Index]
       );
       let targetYaw = util.radToDeg(
         Math.atan2(distanceVector[0], distanceVector[1])
@@ -182,8 +183,6 @@ FormationControl.prototype.calculateCommands = function (Agents_Position) {
   }
   return agentsCommands;
 };
-
-let iteration = 0;
 
 FormationControl.prototype.runCommands = function (commands, quadIndex) {
   commands.forEach((command) => {
@@ -213,8 +212,6 @@ FormationControl.prototype.runCommands = function (commands, quadIndex) {
 
 // Control Loop
 FormationControl.prototype.intervalControl = function (currentPositions) {
-  iteration++;
-  console.log("ITERATION", iteration);
   // For simulation
   this.saveFakePosData();
 
@@ -224,22 +221,8 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
 
   // calculate and command the controller
   let commands = this.calculateCommands(currentPositions);
-  this.runCommands(commands[0], 1);
-  this.runCommands(commands[1], 2);
-  if (iteration == 5) {
-    console.log("END");
-    console.log("Land");
-    // If error, clean the mission._steps
-    // this.quads[0]._steps = []
-    // this.quads[1]._steps = []
-    this.quads[0].land();
-    this.quads[1].land();
-    this.quads[0].run();
-    this.quads[1].run();
-    // this.Map.saveDataHistory(this.folderName, this.fileName);
-    // console.log("Data Saved!");
-    clearInterval(this);
-  }
+  this.runCommands(commands[0], 0);
+  this.runCommands(commands[1], 1);
 };
 
 // Main Function
@@ -251,8 +234,25 @@ FormationControl.prototype.execute = function () {
     this.quads[0].run();
     this.quads[1].run();
     setTimeout(() => {
-      setInterval(() => {
-        this.intervalControl(this.Map.currentPosition);
+      this.intervalId = setInterval(() => {
+        this.intervalControl(this.Map.currentPositions);
+
+        if (Math.round(this.Map.currentPositions[0][0]) == 1) {
+          console.log(`WHUT ${this.Map.currentPositions[0][0]}`)
+          console.log("END");
+          console.log("Land");
+          // If error, clean the mission._steps
+          // this.quads[0]._steps = []
+          // this.quads[1]._steps = []
+          this.quads[0].land();
+          this.quads[1].land();
+          this.quads[0].run();
+          this.quads[1].run();
+          clearInterval(this.intervalId);
+
+          // this.Map.saveDataHistory(this.folderName, this.fileName);
+          // console.log("Data Saved!");
+        }
       }, 2000);
     }, 5000);
   } catch (error) {
