@@ -16,12 +16,13 @@ client1.on("navdata", (navdata) => {
     let demo = Object(navdata.demo);
     console.log("Battery : ", demo.batteryPercentage);
     console.log("demo", demo.rotation);
+    console.log("yaw navdata: ")
   }
 });
 
 control1.on("controlData", (ekfData) => {
   if (ekfData !== undefined) {
-    console.log("yaw :", ekfData.state.yaw);
+    console.log("yaw EKF: ", ekfData.state.yaw);
   }
 });
 

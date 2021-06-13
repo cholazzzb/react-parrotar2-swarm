@@ -1,8 +1,21 @@
 import { useState, useEffect } from "react";
 import useSocket from "../useSocket";
 import Head from "next/head";
-import styles from "../styles/Home.module.css";
-import { Button, Center, Grid, GridItem } from "@chakra-ui/react";
+import {
+  Button,
+  Center,
+  Grid,
+  GridItem,
+  Stack,
+  Radio,
+  RadioGroup,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  useDisclosure,
+} from "@chakra-ui/react";
 
 import DroneState from "./components/DroneState";
 import EKFState from "./components/EKFState";
@@ -23,6 +36,39 @@ const COMMAND_EVENT = "COMMAND_EVENT";
 const EKF_EVENT1 = "EKF_EVENT1";
 const EKF_EVENT2 = "EKF_EVENT2";
 
+function Menu({ setSlide }) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [placement, setPlacement] = React.useState("right");
+
+  return (
+    <>
+      <Center h="60px" color="white" bgColor="gray.800">
+        <Button colorScheme="blue" onClick={onOpen}>
+          Menu
+        </Button>
+        STATUS : {status}
+      </Center>
+      <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerHeader borderBottomWidth="1px">Navigation</DrawerHeader>
+          <DrawerBody>
+            <div onClick={() => setSlide(0)}>
+              <p>Controller</p>
+            </div>
+            <div onClick={() => setSlide(1)}>
+              <p>Data</p>
+            </div>
+            <div onClick={() => setSlide(2)}>
+              <p>Simulator</p>
+            </div>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </>
+  );
+}
+
 export default function Home() {
   const [slide, setSlide] = useState(0);
   const [status, setStatus] = useState("INITIAL STATUS");
@@ -33,18 +79,14 @@ export default function Home() {
 
   return (
     <div>
+      <Menu setSlide={setSlide} />
+
       {slide === 0 ? (
         <>
           <Head>
             <title>React Parrot AR2 SWARM</title>
             <link rel="icon" href="/favicon.ico" />
           </Head>
-          <Center h="60px" color="white" bgColor="gray.800">
-            STATUS : {status}
-            <Button color="green" onClick={() => setSlide(1)}>
-              Change Slide
-            </Button>
-          </Center>
           <Grid
             bgColor="gray.600"
             p="3"
@@ -74,12 +116,8 @@ export default function Home() {
             </GridItem>
           </Grid>
         </>
-      ) : (
+      ) : slide ==1 ?(
         <>
-          <Button color="green" onClick={() => setSlide(0)}>
-            Change Slide
-          </Button>
-
           {/* <Grid
             bgColor="gray.600"
             p="3"
@@ -129,7 +167,8 @@ export default function Home() {
             </GridItem>
           </Grid>
         </>
-      )}
+      ): <>
+      </>}
     </div>
   );
 }

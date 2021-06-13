@@ -17,6 +17,10 @@
     "ex6": "node ./Experiments/Scripts/Ex6.js",
     "ex7": "node ./Experiments/Scripts/Ex7.js",
     "ex8": "node ./Experiments/Scripts/Ex8.js",
+    "ex9": "node ./Experiments/Scripts/Ex9.js",
+    "ex10": "node ./Experiments/Scripts/Ex10.js",
+    "ex11": "node ./Experiments/Scripts/Ex11.js",
+    "ex12": "node ./Experiments/Scripts/Ex12.js",
     "land": "node ./Experiments/Scripts/Land.js",
     "testVS": "node ./Experiments/Scripts/Libraries/test_VirtualStructure.js"
   },

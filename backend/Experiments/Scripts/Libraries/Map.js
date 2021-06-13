@@ -5,6 +5,7 @@ function Map(initialAgentsPosition, obstaclesPosition, targetsPosition) {
   this.obstaclesPosition = obstaclesPosition;
   this.targetsPosition = targetsPosition;
 
+  // in Quad Reference Frame
   this.history = {
     xPos: [],
     xVel: [],
@@ -42,11 +43,11 @@ function Map(initialAgentsPosition, obstaclesPosition, targetsPosition) {
 Map.prototype.addNavDataToHistory = function (newData, quadIndex) {
   this.history.xVel[quadIndex].data.push({
     x: newData.time,
-    y: newData.xVel,
+    y: newData.xVel + this.initialAgentsPosition[quadIndex][0],
   });
   this.history.yVel[quadIndex].data.push({
     x: newData.time,
-    y: newData.yVel,
+    y: newData.yVel + this.initialAgentsPosition[quadIndex][1],
   });
 };
 
