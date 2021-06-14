@@ -22,6 +22,8 @@
     "ex11": "node ./Experiments/Scripts/Ex11.js",
     "ex12": "node ./Experiments/Scripts/Ex12.js",
     "land": "node ./Experiments/Scripts/Land.js",
+    "checkBattery": "node ./Experiments/Scripts/CheckBattery.js",
+    "calibrate": "node ./Experiments/Scripts/Calibrate.js",
     "testVS": "node ./Experiments/Scripts/Libraries/test_VirtualStructure.js"
   },
   "author": "Nicholas Biantoro",
