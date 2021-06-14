@@ -8,15 +8,19 @@ var intervalId;
 var iteration = 0;
 function intervalControl() {
   iteration++;
+  console.log(iteration)
+  mission1._steps = []
   mission1.forward(1);
   mission1.run();
 
-  if (iteration == 5) {
+  if (iteration == 3) {
     clearInterval(intervalId);
+    mission1.land().run()
   }
 }
 
 try {
+  console.log('takeoff')
   mission1.takeoff().zero();
   mission1.run();
 
