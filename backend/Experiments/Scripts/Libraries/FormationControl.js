@@ -168,17 +168,20 @@ FormationControl.prototype.calculateCommands = function (Agents_Position) {
         posGlobal,
         VS_Points[Agent_Index]
       );
-      let targetYaw = util.radToDeg(
-        Math.atan2(distanceVector[0], distanceVector[1])
-      );
-      let currentYaw = this.Map.history.yaw[Agent_Index].data[-1];
-      let yawError = targetYaw - currentYaw;
-      if (yawError) {
-        commands.push(["cw", commandValue]);
-      }
+      // let targetYaw = util.radToDeg(
+      //   Math.atan2(distanceVector[0], distanceVector[1])
+      // );
+      // let currentYaw = this.Map.history.yaw[Agent_Index].data[-1];
+      // let yawError = targetYaw - currentYaw;
+      // if (yawError) {
+      //   commands.push(["cw", commandValue]);
+      // }
+
+      command = "forward"
+      commandValue = 1
+      commands = [[command, commandValue]];
 
       agentsCommands.push(commands);
-      commands = [];
     });
   }
   return agentsCommands;
@@ -186,6 +189,7 @@ FormationControl.prototype.calculateCommands = function (Agents_Position) {
 
 FormationControl.prototype.runCommands = function (commands, quadIndex) {
   commands.forEach((command) => {
+    console.log(`COMMAND ${command[0]}`)
     switch (command[0]) {
       case "forward":
         this.quads[quadIndex].forward(command[1]);
@@ -221,6 +225,7 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
 
   // calculate and command the controller
   let commands = this.calculateCommands(currentPositions);
+  // console.log(`COMMANDS ${commands}`)
   this.runCommands(commands[0], 0);
   this.runCommands(commands[1], 1);
 };
