@@ -13,6 +13,7 @@ const NAVDATA_EVENT = "NAVDATA_EVENT"
 const COMMAND_EVENT = "COMMAND_EVENT"
 const EKF_EVENT1 = "EKF_EVENT1"
 const EKF_EVENT2 = "EKF_EVENT2"
+const SIMULATION_EVENT = "SIMULATION_EVENT"
 
 io.on("connection", (socket) => {
   
@@ -43,6 +44,12 @@ io.on("connection", (socket) => {
   socket.on(EKF_EVENT2, (data) => {
     io.in(type).emit(EKF_EVENT2, data);
     // console.log('---EMIT DATA EKF2---')
+    // console.log('Data', data)
+  });
+
+  socket.on(SIMULATION_EVENT, (data) => {
+    io.in(type).emit(SIMULATION_EVENT, data);
+    // console.log('---EMIT SIMULATION DATA---')
     // console.log('Data', data)
   });
 

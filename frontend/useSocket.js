@@ -48,7 +48,7 @@ function useSocket(type, eventConstant) {
         { id: "parrot 1", data: [] },
         { id: "parrot 2", data: [] },
         { id: "target", data: [{ x: 10, y: 1 }] },
-        { id: "obstacle 1", data: [{ x: 1, y: 2 }] },
+        { id: "obstacle 1", data: [{ x: 5, y: 2 }] },
       ];
 
       break;
@@ -64,7 +64,6 @@ function useSocket(type, eventConstant) {
     socketRef.current = socketIOClient(SOCKET_SERVER_URL, {
       query: type,
     });
-
     socketRef.current.on(eventConstant, (newData) => {
       var incomingData;
       switch (eventConstant) {
@@ -116,8 +115,20 @@ function useSocket(type, eventConstant) {
 
           break;
 
-        case "SIMULATION":
-          incomingData = { ...data };
+        case SIMULATION_EVENT:
+          incomingData = [...data];
+          console.log("HMM", newData.hasOwnProperty("body"))
+          if(newData.hasOwnProperty("body")){
+            incomingData[0].data.push({
+              x: newData.body[0].data[0],
+              y: newData.body[0].data[1],
+            });
+            incomingData[1].data.push({
+              x: newData.body[1].data[0],
+              y: newData.body[1].data[1],
+            });
+          }
+
           break;
         default:
           break;

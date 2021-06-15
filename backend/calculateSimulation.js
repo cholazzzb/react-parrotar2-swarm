@@ -2,7 +2,6 @@ import socketIOClient from "socket.io-client";
 import FormationControl from "./Experiments/Scripts/Libraries/FormationControl.js";
 import QuadModel from "./Experiments/Scripts/Libraries/QuadModel.js";
 
-var isSimulateStart = true;
 const SOCKET_SERVER_URL = "http://localhost:4000";
 const SIMULATION_EVENT = "SIMULATION_EVENT";
 const socketTunnel = socketIOClient(SOCKET_SERVER_URL, {
@@ -42,9 +41,11 @@ const AR2 = new QuadModel(
   0.2
 );
 
-while (isSimulateStart) {
+var intervalId = setInterval(() => {
+  calculateDynamics();
+}, 1000);
 
-
+const calculateDynamics = () => {
   // Use the Formation Control to get command
   let Agents_Position = [
     [AR1.currentPos.xPos, AR1.currentPos.yPos, AR1.currentPos.zPos],
@@ -95,6 +96,6 @@ while (isSimulateStart) {
 
   // END the simulation
   if (Math.round(AR1.time) == 5) {
-    isSimulateStart = false;
+    clearInterval(intervalId);
   }
-}
+};

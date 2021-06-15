@@ -1,21 +1,25 @@
 import React, { useState } from "react";
 import { Button, Flex, Grid, GridItem } from "@chakra-ui/react";
-import useSocket from "../../useSocket";
+import useSocketSim from "../../useSocketSim";
 import QuadrotorPosition from "./QuadrotorPosition.js";
 import InputNumber from "./InputNumber.js";
 
 const SIMULATION_EVENT = "SIMULATION_EVENT";
+var initialState = [
+  { id: "parrot 1", data: [] },
+  { id: "parrot 2", data: [] },
+  { id: "target", data: [{ x: 10, y: 1 }] },
+  { id: "obstacle 1", data: [{ x: 5, y: 2 }] },
+];
 
 function Simulator() {
   const [kob1, setKob1] = useState(0);
   const [start, setStart] = useState(false);
-  const [quadState, setQuadState] = useSocket("SIMULATION", SIMULATION_EVENT);
-  /**
-   * NOTE : initialState in useSocket !!!
-   * 
-   * 
-   * 
-   */
+  const [quadState, sendCommand, setQuadState] = useSocketSim(
+    initialState,
+    "SIMULATION",
+    SIMULATION_EVENT
+  );
 
   return (
     <Grid
@@ -50,6 +54,13 @@ function Simulator() {
         ) : (
           <Button onClick={() => setStart(true)}>Run Simulation</Button>
         )}
+        <Button
+          onClick={() => {
+            setQuadState(initialState);
+          }}
+        >
+          Reset
+        </Button>
       </GridItem>
     </Grid>
   );
