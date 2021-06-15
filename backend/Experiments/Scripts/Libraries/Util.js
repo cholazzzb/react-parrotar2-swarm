@@ -57,6 +57,9 @@ export function calculateWithVector(type, operator1, operator2) {
 }
 
 export function transToWorldFrame(position, yaw) {
+  if(yaw == undefined){
+    console.error("ERROR YAW IS NEEDED IN UTIL - TransToWorldFrame")
+  }
   let yawRad = degToRad(yaw);
   let transMatrix = [
     [Math.cos(yawRad), -Math.sin(yawRad), 0],

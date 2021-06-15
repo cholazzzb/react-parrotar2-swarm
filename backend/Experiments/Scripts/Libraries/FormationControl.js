@@ -18,88 +18,115 @@ function FormationControl(setup) {
     setup.obstaclesPosition,
     setup.targetsPosition
   );
-  var [client1, control1, mission1] = autonomy.createMission({
-    ip: setup.ipQuad1,
+
+  setup.initialAgentsPosition.forEach((position, index) => {
+    this.Map.history.xPos[index].data.push({
+      x: 0,
+      y: position[0],
+    });
+    this.Map.history.xVel[index].data.push({
+      x: 0,
+      y: 0,
+    });
+    this.Map.history.yPos[index].data.push({
+      x: 0,
+      y: position[1],
+    });
+    this.Map.history.yVel[index].data.push({
+      x: 0,
+      y: 0,
+    });
+    this.Map.history.zPos[index].data.push({
+      x: 0,
+      y: position[2],
+    });
+    this.Map.history.yaw[index].data.push({
+      x: 0,
+      y: 0,
+    });
   });
-  var [client2, control2, mission2] = autonomy.createMission({
-    ip: setup.ipQuad2,
-  });
+  if (setup.mode == "implementation") {
+    var [client1, control1, mission1] = autonomy.createMission({
+      ip: setup.ipQuad1,
+    });
+    var [client2, control2, mission2] = autonomy.createMission({
+      ip: setup.ipQuad2,
+    });
 
-  this.emergencyClients = [client1, client2];
+    this.emergencyClients = [client1, client2];
+    console.log("Connected!");
 
-  console.log("Connected!");
+    this.quads = [mission1, mission2];
+    this.intervalId = "";
+    this.initialTime = new Date().getTime();
+    this.time = 0;
 
-  this.quads = [mission1, mission2];
-  this.intervalId = "";
+    client1.on("navdata", (navdata) => {
+      if (navdata != undefined) {
+        let demo = Object(navdata.demo);
+        this.time =
+          Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+        this.Map.addNavDataToHistory(
+          {
+            time: this.time,
+            xVel: 0,
+            yVel: 0,
+          },
+          0
+        );
+      }
+    });
 
-  this.initialTime = new Date().getTime();
-  this.time = 0;
+    client2.on("navdata", (navdata) => {
+      if (navdata != undefined) {
+        let demo = Object(navdata.demo);
+        this.time =
+          Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+        this.Map.addNavDataToHistory(
+          {
+            time: this.time,
+            xVel: 0,
+            yVel: 0,
+          },
+          1
+        );
+      }
+    });
 
-  client1.on("navdata", (navdata) => {
-    if (navdata != undefined) {
-      let demo = Object(navdata.demo);
-      this.time =
-        Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-      this.Map.addNavDataToHistory(
-        {
-          time: this.time,
-          xVel: 0,
-          yVel: 0,
-        },
-        0
-      );
-    }
-  });
+    control1.on("controlData", (ekfData) => {
+      if (ekfData != undefined) {
+        this.time =
+          Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+        this.Map.addDataControlToHistory(
+          {
+            time: this.time,
+            xPos: ekfData.state.x,
+            yPos: ekfData.state.y,
+            zPos: ekfData.state.z,
+            yaw: ekfData.state.yaw,
+          },
+          0
+        );
+      }
+    });
 
-  client2.on("navdata", (navdata) => {
-    if (navdata != undefined) {
-      let demo = Object(navdata.demo);
-      this.time =
-        Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-      this.Map.addNavDataToHistory(
-        {
-          time: this.time,
-          xVel: 0,
-          yVel: 0,
-        },
-        1
-      );
-    }
-  });
-
-  control1.on("controlData", (ekfData) => {
-    if (ekfData != undefined) {
-      this.time =
-        Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-      this.Map.addDataControlToHistory(
-        {
-          time: this.time,
-          xPos: ekfData.state.x,
-          yPos: ekfData.state.y,
-          zPos: ekfData.state.z,
-          yaw: ekfData.state.yaw,
-        },
-        0
-      );
-    }
-  });
-
-  control2.on("controlData", (ekfData) => {
-    if (ekfData != undefined) {
-      this.time =
-        Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-      this.Map.addControlDataToHistory(
-        {
-          time: this.time,
-          xPos: ekfData.state.x,
-          yPos: ekfData.state.y,
-          zPos: ekfData.state.z,
-          yaw: ekfData.state.yaw,
-        },
-        1
-      );
-    }
-  });
+    control2.on("controlData", (ekfData) => {
+      if (ekfData != undefined) {
+        this.time =
+          Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+        this.Map.addControlDataToHistory(
+          {
+            time: this.time,
+            xPos: ekfData.state.x,
+            yPos: ekfData.state.y,
+            zPos: ekfData.state.z,
+            yaw: ekfData.state.yaw,
+          },
+          1
+        );
+      }
+    });
+  }
 }
 
 FormationControl.prototype.saveFakePosData = function () {
@@ -131,15 +158,11 @@ FormationControl.prototype.saveFakePosData = function () {
 
 FormationControl.prototype.calculateCommands = function (Agents_Position) {
   let agentsCommands = [];
-  let commands = [];
-  let command = "";
-  let commandValue = 0;
 
   // Get Current Position and Velocity
 
   // Calculate APF if the quadrotor already on VS Point
   let numberQuadrotorOnVSPoint = 0;
-  console.log("nani", Agents_Position);
   Agents_Position.forEach((position, Agent_Index) => {
     let VS_Points = this.VS.VS_Points;
     let distance =
@@ -161,25 +184,43 @@ FormationControl.prototype.calculateCommands = function (Agents_Position) {
   // Control Quadrotor to VS Points
   else {
     Agents_Position.forEach((position, Agent_Index) => {
+      let commands = [];
+      let command = "";
+      let commandValue = 0;
+      let currentYaw =
+        this.Map.history.yaw[0].data[this.Map.history.yaw[0].data.length - 1].y;
+      // console.log(`currentYaw ${currentYaw}`);
+      
       let VS_Points = this.VS.VS_Points;
-      let posGlobal = util.transToWorldFrame(position);
+      // console.log(`Position ${position}`)
+      let posGlobal = util.transToWorldFrame(position, currentYaw);
+      // console.log(`POS GLOBAL ${posGlobal}`)
+      // console.log(`VS POINTS ${VS_Points}`)
       let distanceVector = util.calculateWithVector(
         "minus",
         posGlobal,
         VS_Points[Agent_Index]
       );
-      // let targetYaw = util.radToDeg(
-      //   Math.atan2(distanceVector[0], distanceVector[1])
-      // );
-      // let currentYaw = this.Map.history.yaw[Agent_Index].data[-1];
-      // let yawError = targetYaw - currentYaw;
-      // if (yawError) {
-      //   commands.push(["cw", commandValue]);
-      // }
 
-      command = "forward"
-      commandValue = 1
-      commands = [[command, commandValue]];
+      // Control Yaw first
+      // console.log(`distance vector ${distanceVector}`)
+      let targetYaw = util.radToDeg(
+        Math.atan2(distanceVector[0], distanceVector[1])
+      );
+      // console.log(`targetYaw ${targetYaw}`);
+
+      let yawError = targetYaw - currentYaw;
+      console.log(`Quad ${Agent_Index} YAW ERROR ${yawError}`);
+      if (yawError > 10) {
+        commands.push(["cw", 1]);
+      } else if (yawError < -10) {
+        commands.push(["ccw", 1]);
+      } else {
+        commands.push(["cw", 0]);
+        command = "forward";
+        commandValue = 1;
+        commands.push([command, commandValue]);
+      }
 
       agentsCommands.push(commands);
     });
@@ -189,7 +230,7 @@ FormationControl.prototype.calculateCommands = function (Agents_Position) {
 
 FormationControl.prototype.runCommands = function (commands, quadIndex) {
   commands.forEach((command) => {
-    console.log(`COMMAND ${command[0]}`)
+    console.log(`COMMAND ${command[0]}`);
     switch (command[0]) {
       case "forward":
         this.quads[quadIndex].forward(command[1]);
@@ -220,8 +261,8 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
   this.saveFakePosData();
 
   // If error, clean the mission._steps
-  // this.quads[0]._steps = []
-  // this.quads[1]._steps = []
+  this.quads[0]._steps = [];
+  this.quads[1]._steps = [];
 
   // calculate and command the controller
   let commands = this.calculateCommands(currentPositions);
@@ -243,12 +284,9 @@ FormationControl.prototype.execute = function () {
         this.intervalControl(this.Map.currentPositions);
 
         if (Math.round(this.Map.currentPositions[0][0]) == 1) {
-          console.log(`WHUT ${this.Map.currentPositions[0][0]}`)
-          console.log("END");
-          console.log("Land");
           // If error, clean the mission._steps
-          // this.quads[0]._steps = []
-          // this.quads[1]._steps = []
+          this.quads[0]._steps = [];
+          this.quads[1]._steps = [];
           this.quads[0].land();
           this.quads[1].land();
           this.quads[0].run();

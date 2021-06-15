@@ -14,6 +14,7 @@ const setup = {
   targetsPosition: [[10, 0, 1]],
   fileName: "Ex9Data",
   folderName: "./Experiments/Data/Ex9",
+  mode: "implementation",
 };
 
 try {

@@ -6,7 +6,8 @@ const SOCKET_SERVER_URL = "http://localhost:4000";
 const NAVDATA_EVENT = "NAVDATA_EVENT";
 const COMMAND_EVENT = "COMMAND_EVENT";
 const EKF_EVENT1 = "EKF_EVENT1";
-const EKF_EVENT2 = "EKF_EVENT2"
+const EKF_EVENT2 = "EKF_EVENT2";
+const SIMULATION_EVENT = "SIMULATION_EVENT";
 
 function useSocket(type, eventConstant) {
   var initialState = {};
@@ -40,6 +41,16 @@ function useSocket(type, eventConstant) {
           },
         ],
       };
+      break;
+
+    case SIMULATION_EVENT:
+      initialState = [
+        { id: "parrot 1", data: [] },
+        { id: "parrot 2", data: [] },
+        { id: "target", data: [{ x: 10, y: 1 }] },
+        { id: "obstacle 1", data: [{ x: 1, y: 2 }] },
+      ];
+
       break;
 
     default:
@@ -103,6 +114,10 @@ function useSocket(type, eventConstant) {
           });
           console.log("CHECK THIS", incomingData);
 
+          break;
+
+        case "SIMULATION":
+          incomingData = { ...data };
           break;
         default:
           break;

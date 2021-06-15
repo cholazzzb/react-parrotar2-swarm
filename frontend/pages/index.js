@@ -1,67 +1,82 @@
-import { useState, useEffect } from "react";
-import useSocket from "../useSocket";
+import { useState } from "react";
 import Head from "next/head";
 import {
-  Button,
-  Center,
-  Grid,
-  GridItem,
-  Stack,
-  Radio,
-  RadioGroup,
+  Box,
   Drawer,
   DrawerOverlay,
   DrawerContent,
   DrawerHeader,
   DrawerBody,
   useDisclosure,
+  IconButton,
 } from "@chakra-ui/react";
+import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 
-import DroneState from "./components/DroneState";
-import EKFState from "./components/EKFState";
-import Controller from "./components/Controller";
-import QuadrotorChart from "./components/QuadrotorChart";
-import QuadrotorPosition from "./components/QuadrotorPosition";
-
-// Data for modelling attitude conroller
-import processedData from "../../backend/Data/1per15/target1/processedData.js";
-
-// EKF Data when trying takeoff -> zero -> forward(0.5 ... , 1.5)
-import EKFData_50cmForwardAPI from "../../backend/Experiments/Data/Ex4/EKFData_50cmForwardAPI";
-import EKFData_100cmForwardAPI from "../../backend/Experiments/Data/Ex4/EKFData_100cmForwardAPI";
-import EKFData_150cmForwardAPI from "../../backend/Experiments/Data/Ex4/EKFData_150cmForwardAPI";
-
-const NAVDATA_EVENT = "NAVDATA_EVENT";
-const COMMAND_EVENT = "COMMAND_EVENT";
-const EKF_EVENT1 = "EKF_EVENT1";
-const EKF_EVENT2 = "EKF_EVENT2";
+import QuadMonitor from "./QuadMonitor";
+import DataAnalysis from "./DataAnalysis";
+import Simulator from "./components/Simulator";
 
 function Menu({ setSlide }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [placement, setPlacement] = React.useState("right");
 
   return (
     <>
-      <Center h="60px" color="white" bgColor="gray.800">
-        <Button colorScheme="blue" onClick={onOpen}>
-          Menu
-        </Button>
-        STATUS : {status}
-      </Center>
+      <Box color="white" p="4" bgColor="gray.800">
+        <IconButton
+          variant="outline"
+          colorScheme="teal"
+          aria-label="Menu"
+          fontSize="20px"
+          onClick={onOpen}
+          icon={<HamburgerIcon />}
+        />
+      </Box>
       <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
         <DrawerOverlay />
-        <DrawerContent>
-          <DrawerHeader borderBottomWidth="1px">Navigation</DrawerHeader>
+        <DrawerContent bgColor="darkslategrey" textColor="white">
+          <DrawerHeader borderBottomWidth="1px">
+            <IconButton
+              variant="outline"
+              colorScheme="teal"
+              aria-label="Menu"
+              fontSize="20px"
+              onClick={onClose}
+              icon={<CloseIcon />}
+              marginRight="2"
+            />
+            Menu
+          </DrawerHeader>
           <DrawerBody>
-            <div onClick={() => setSlide(0)}>
-              <p>Controller</p>
-            </div>
-            <div onClick={() => setSlide(1)}>
-              <p>Data</p>
-            </div>
-            <div onClick={() => setSlide(2)}>
-              <p>Simulator</p>
-            </div>
+            <Box
+              as="button"
+              bg="grey"
+              w="100%"
+              p={2}
+              color="white"
+              onClick={() => setSlide(0)}
+            >
+              Controller
+            </Box>
+            <Box
+              as="button"
+              bg="tomato"
+              w="100%"
+              p={2}
+              color="white"
+              onClick={() => setSlide(1)}
+            >
+              Data
+            </Box>
+            <Box
+              as="button"
+              bg="Background"
+              w="100%"
+              p={2}
+              color="white"
+              onClick={() => setSlide(2)}
+            >
+              Simulator
+            </Box>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
@@ -70,105 +85,22 @@ function Menu({ setSlide }) {
 }
 
 export default function Home() {
-  const [slide, setSlide] = useState(0);
-  const [status, setStatus] = useState("INITIAL STATUS");
-  const [commandData, sendCommandData] = useSocket("COMMAND", COMMAND_EVENT);
-  const [navData, setNavData] = useSocket("NAVDATA", NAVDATA_EVENT);
-  const [ekfData1, setEkfData1] = useSocket("EKFDATA1", EKF_EVENT1);
-  const [ekfData2, setEkfData2] = useSocket("EKFDATA2", EKF_EVENT2);
+  const [slide, setSlide] = useState(2);
 
   return (
     <div>
+      <Head>
+        <title>React Parrot AR2 SWARM</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <Menu setSlide={setSlide} />
-
       {slide === 0 ? (
-        <>
-          <Head>
-            <title>React Parrot AR2 SWARM</title>
-            <link rel="icon" href="/favicon.ico" />
-          </Head>
-          <Grid
-            bgColor="gray.600"
-            p="3"
-            h="1200px"
-            templateRows="repeat(3, 1fr)"
-            templateColumns="repeat(5, 1fr)"
-            gap={4}
-          >
-            <GridItem
-              bg="papayawhip"
-              borderWidth="2px"
-              borderRadius="lg"
-              colSpan={4}
-            >
-              {/* <QuadrotorPosition data={ekfData1.position} /> */}
-            </GridItem>
-            <GridItem rowSpan={2} colSpan={1}>
-              <DroneState data={navData} />
-              <EKFState data={ekfData1} />
-              <Controller sendCommandData={sendCommandData} />
-            </GridItem>
-            <GridItem colSpan={4} bg="papayawhip">
-              <QuadrotorChart data={navData.angles} yLabel="degree" />
-            </GridItem>
-            <GridItem colSpan={4} bg="papayawhip" color="black">
-              <QuadrotorChart data={navData.altitude} yLabel="meter(m)" />
-            </GridItem>
-          </Grid>
-        </>
-      ) : slide ==1 ?(
-        <>
-          {/* <Grid
-            bgColor="gray.600"
-            p="3"
-            h="1200px"
-            templateRows="repeat(3, 1fr)"
-            templateColumns="repeat(4, 1fr)"
-            gap={4}
-          > */}
-          {/* Data for modelling attitude controller */}
-          {/* <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.phi} yLabel="Phi" />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.phiAverage} yLabel="Phi Average" />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.theta} yLabel="Theta" />
-            </GridItem> */}
-
-          {/* </Grid> */}
-          <Grid
-            bgColor="gray.600"
-            p="3"
-            h="1200px"
-            templateRows="repeat(3, 1fr)"
-            templateColumns="repeat(1, 1fr)"
-            gap={4}
-          >
-            {/* Data from EKF API forward (0.5 , ..., 1.5) */}
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart
-                data={EKFData_50cmForwardAPI}
-                yLabel="forwardAPI(50cm)"
-              />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart
-                data={EKFData_100cmForwardAPI}
-                yLabel="forwardAPI(100cm)"
-              />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart
-                data={EKFData_150cmForwardAPI}
-                yLabel="forwardAPI(150cm)"
-              />
-            </GridItem>
-          </Grid>
-        </>
-      ): <>
-      </>}
+        <QuadMonitor />
+      ) : slide == 1 ? (
+        <DataAnalysis />
+      ) : (
+        <Simulator />
+      )}
     </div>
   );
 }
