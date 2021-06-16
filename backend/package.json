@@ -26,6 +26,7 @@
     "checkBattery": "node ./Experiments/Scripts/CheckBattery.js",
     "calibrate": "node ./Experiments/Scripts/Calibrate.js",
     "realTime": "node ./Experiments/Scripts/MissionRealTime.js",
+    "realTime2": "node ./Experiments/Scripts/MissionRealTime2.js",
     "testVS": "node ./Experiments/Scripts/Libraries/test_VirtualStructure.js"
   },
   "author": "Nicholas Biantoro",

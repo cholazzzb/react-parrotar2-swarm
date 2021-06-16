@@ -10,7 +10,12 @@ function intervalControl() {
   iteration++;
   console.log(iteration);
   mission1._steps = [];
-  mission1.forward(1);
+  // forward API
+  // mission1.forward(1);
+
+  // go API
+  mission1.go({ x: iteration, y: 0, z: 1, yaw: 90 });
+
   mission1.run();
 
   if (iteration == 3) {

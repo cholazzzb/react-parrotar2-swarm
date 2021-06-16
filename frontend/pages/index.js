@@ -21,7 +21,7 @@ function Menu({ setSlide }) {
 
   return (
     <>
-      <Box color="white" p="4" bgColor="gray.800">
+      <Box color="white" p="1" bgColor="gray.800">
         <IconButton
           variant="outline"
           colorScheme="teal"

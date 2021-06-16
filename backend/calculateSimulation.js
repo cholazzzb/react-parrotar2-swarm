@@ -87,10 +87,20 @@ const calculateDynamics = () => {
   // Send the position with socketIO
   socketTunnel.emit(SIMULATION_EVENT, {
     type: "SIMULATION",
-    body: [
-      { id: "Quad1", data: AR1Position },
-      { id: "Quad2", data: AR2Position },
-    ],
+    body: {
+      position: [
+        { id: "Quad1", data: AR1Position },
+        { id: "Quad2", data: AR2Position },
+      ],
+      attitude: [
+        { id: "Quad1", data: { x: AR1.time, y: AR1Position.zPos } },
+        { id: "Quad2", data: { x: AR2.time, y: AR2Position.zPos } },
+      ],
+      yaw: [
+        { id: "Quad1", data: { x: AR1.time, y: AR1Position.yaw } },
+        { id: "Quad2", data: { x: AR2.time, y: AR2Position.yaw } },
+      ],
+    },
     senderId: socketTunnel.id,
   });
 

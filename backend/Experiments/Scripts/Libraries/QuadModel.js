@@ -37,7 +37,7 @@ function QuadModel(type, initialPosition, dt) {
  * @returns QuadModel.currentPos
  */
 QuadModel.prototype.calculateResponse = function (commands) {
-  this.time = this.time + this.dt;
+  this.time = Math.round((this.time + this.dt) * 10) / 10;
   console.log(`----- TIME : ${this.time} -----`);
   commands.forEach(([input, inputVal]) => {
     console.log(`INPUT ${input} ${inputVal}`);

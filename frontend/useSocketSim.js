@@ -17,16 +17,22 @@ function useSocket(initialState, type, eventConstant) {
       var incomingData;
       switch (eventConstant) {
         case SIMULATION_EVENT:
-          incomingData = [...data];
+          incomingData = { ...data };
           if (newData.hasOwnProperty("body")) {
-            incomingData[0].data.push({
-              x: newData.body[0].data.xPos,
-              y: newData.body[0].data.yPos,
+            incomingData.position[0].data.push({
+              x: newData.body.position[0].data.xPos,
+              y: newData.body.position[0].data.yPos,
             });
-            incomingData[1].data.push({
-              x: newData.body[1].data.xPos,
-              y: newData.body[1].data.yPos,
+            incomingData.position[1].data.push({
+              x: newData.body.position[1].data.xPos,
+              y: newData.body.position[1].data.yPos,
             });
+
+            incomingData.attitude[0].data.push(newData.body.attitude[0].data);
+            incomingData.attitude[1].data.push(newData.body.attitude[1].data);
+
+            incomingData.yaw[0].data.push(newData.body.yaw[0].data);
+            incomingData.yaw[1].data.push(newData.body.yaw[1].data);
           }
 
           break;

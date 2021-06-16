@@ -3,14 +3,25 @@ import { Button, Flex, Grid, GridItem } from "@chakra-ui/react";
 import useSocketSim from "../../useSocketSim";
 import QuadrotorPosition from "./QuadrotorPosition.js";
 import InputNumber from "./InputNumber.js";
+import QuadrotorChart from "./QuadrotorChart";
 
 const SIMULATION_EVENT = "SIMULATION_EVENT";
-var initialState = [
-  { id: "parrot 1", data: [] },
-  { id: "parrot 2", data: [] },
-  { id: "target", data: [{ x: 10, y: 1 }] },
-  { id: "obstacle 1", data: [{ x: 5, y: 2 }] },
-];
+var initialState = {
+  position: [
+    { id: "parrot 1", data: [] },
+    { id: "parrot 2", data: [] },
+    { id: "target", data: [{ x: 10, y: 1 }] },
+    { id: "obstacle 1", data: [{ x: 5, y: 2 }] },
+  ],
+  attitude: [
+    { id: "parrot 1", data: [] },
+    { id: "parrot 2", data: [] },
+  ],
+  yaw: [
+    { id: "parrot 1", data: [] },
+    { id: "parrot 2", data: [] },
+  ],
+};
 
 function Simulator() {
   const [kob1, setKob1] = useState(0);
@@ -30,11 +41,14 @@ function Simulator() {
       templateColumns="repeat(3, 1fr)"
       gap={4}
     >
-      <GridItem colSpan={2} bg="papayawhip" color="black">
-        <QuadrotorPosition data={quadState} />
+      <GridItem rowSpan={2} colSpan={2} bg="papayawhip" color="black">
+        <QuadrotorPosition data={quadState.position} />
       </GridItem>
-      <GridItem bg="orange.600" color="black">
-        1. Altitude Graph 2. Yaw Graph
+      <GridItem bg="papayawhip" color="black">
+        <QuadrotorChart data={quadState.attitude} yLabel="z(m)" />
+      </GridItem>
+      <GridItem bg="papayawhip" color="black">
+        <QuadrotorChart data={quadState.yaw} yLabel="yaw(degree)" />
       </GridItem>
       <GridItem color="black">
         <Flex>
