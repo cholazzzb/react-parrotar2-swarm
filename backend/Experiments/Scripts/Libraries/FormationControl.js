@@ -11,8 +11,12 @@ var posData = new FakeSensor();
 function FormationControl(setup) {
   this.folderName = setup.folderName;
   this.fileName = setup.fileName;
-  this.VS = new VirtualStructure();
-  this.APF = new ArtificialPotentialField();
+  this.VS = new VirtualStructure(setup.initialFRP);
+  this.APF = new ArtificialPotentialField(
+    [setup.initialFRP],
+    setup.obstaclesPosition,
+    setup.targetsPosition
+  );
   this.Map = new Map(
     setup.initialAgentsPosition,
     setup.obstaclesPosition,
@@ -156,6 +160,74 @@ FormationControl.prototype.saveFakePosData = function () {
   );
 };
 
+/**
+ *
+ * @param {*} Agents_Position
+ * @param {*} Agents_Velocity
+ * @param {*} Agents_Yaw
+ * @returns {[[xPos, yPos, zPos, yaw]1, [xPos, yPos, zPos, yaw]2]} newPositions
+ */
+FormationControl.prototype.calculateTargetPos = function (
+  Agents_Position,
+  Agents_Velocity,
+  Agents_Yaw
+) {
+  let numberQuadrotorOnVSPoint = 0;
+  let newPositions;
+
+  // Check how many quads already in target VS point
+  Agents_Position.forEach((Agent_Position, Agent_Index) => {
+    let posInGlobalFrame = util.transToWorldFrame(
+      Agent_Position,
+      Agents_Yaw[Agent_Index]
+    );
+    console.log("POSINGLOBALFRAME", posInGlobalFrame);
+    let VS_Points = this.VS.VS_Points;
+    let distance =
+      Math.round(
+        Math.sqrt(
+          (posInGlobalFrame[0] - VS_Points[Agent_Index][0]) ** 2 +
+            (posInGlobalFrame[1] - VS_Points[Agent_Index][1]) ** 2
+        ) * 100
+      ) / 100;
+
+    console.log("distance", distance);
+    if (distance < 0.1) {
+      numberQuadrotorOnVSPoint++;
+    }
+  });
+
+  console.log("NUMBER", numberQuadrotorOnVSPoint);
+
+  // Only for 2 quadrotors
+  if (numberQuadrotorOnVSPoint == 2) {
+    // Calculate APF Force
+    let totalAPF = this.APF.calculateTotalForce(Agents_Velocity);
+    console.log("TOTAL APF", totalAPF);
+    // Get new VSPoint
+    newPositions = this.VS.calculateNewVSPoint(totalAPF);
+  } else {
+    // Control the Quads to VS Point
+
+    // Simulation
+    newPositions = this.VS.VS_Points;
+    for (
+      let VS_Point_Index = 0;
+      VS_Point_Index < newPositions.length;
+      VS_Point_Index++
+    ) {
+      newPositions[VS_Point_Index].push(0);
+    }
+
+    // Implementation
+    // this.quads.forEach(() => {
+
+    // })
+  }
+
+  return newPositions;
+};
+
 FormationControl.prototype.calculateCommands = function (Agents_Position) {
   let agentsCommands = [];
 
@@ -190,7 +262,7 @@ FormationControl.prototype.calculateCommands = function (Agents_Position) {
       let currentYaw =
         this.Map.history.yaw[0].data[this.Map.history.yaw[0].data.length - 1].y;
       // console.log(`currentYaw ${currentYaw}`);
-      
+
       let VS_Points = this.VS.VS_Points;
       // console.log(`Position ${position}`)
       let posGlobal = util.transToWorldFrame(position, currentYaw);

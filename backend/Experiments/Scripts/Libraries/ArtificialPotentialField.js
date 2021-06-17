@@ -1,19 +1,19 @@
 import { calculateEucDistance, calculateWithVector } from "./Util.js";
 
-function ArtificialPotentialField() {
+function ArtificialPotentialField(Agents_Position, Obstacles_Position, Targets_Position) {
   this.Constants = {
     odr: 10,
     tdr: 1,
   };
   this.Parameters = {
     ktvi: 1,
-    ktp: 1,
-    kobp1: 1,
-    kobp2: 1,
+    ktp: 5.1,
+    kobp1: 0.31,
+    kobp2: 0.31,
   };
-  this.Agents_Position = [];
-  this.Obstacles_Position = [];
-  this.Targets_Position = []; // Only 1 Target and Assume the target are static
+  this.Agents_Position = Agents_Position;
+  this.Obstacles_Position = Obstacles_Position;
+  this.Targets_Position = Targets_Position; // Only 1 Target and Assume the target is static
 }
 
 ArtificialPotentialField.prototype.setAgentsPosition = function (
@@ -125,7 +125,8 @@ ArtificialPotentialField.prototype.calculateTotalForce = function (
   // OPF = Obstacle Potential Force
   let OPF = this.calculateObstaclesPotentialForce();
 
-  console.log();
+  console.log("TPF", TPF)
+  console.log("OPF", OPF)
   let TTPF = [];
   TPF.forEach((Force, Index) => {
     let totalForce = calculateWithVector("plus", Force, OPF[Index]);

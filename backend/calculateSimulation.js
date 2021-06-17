@@ -15,6 +15,7 @@ const setup = {
   ],
   obstaclesPosition: [[5, 0, 1]],
   targetsPosition: [[10, 1, 1]],
+  initialFRP : [0,0,0],
   mode: "simulation",
 };
 
@@ -41,65 +42,80 @@ const AR2 = new QuadModel(
   0.2
 );
 
+const Quads = [AR1, AR2];
+
 var intervalId = setInterval(() => {
   calculateDynamics();
 }, 1000);
 
 const calculateDynamics = () => {
-  // Use the Formation Control to get command
+  // ----- FOR USING FORWARD API, etc -----
+  // // console.log(`CURRENT POSITION ${Agents_Position}`);
+  // let agentsCommands = controller.calculateCommands(Agents_Position);
+  // console.log(agentsCommands);
+  // console.log(`AGENTS COMMANDS ${agentsCommands}`);
+  // // Calculate the simulation
+  // var AR1Position = AR1.calculateResponse(agentsCommands[0]);
+  // var AR2Position = AR2.calculateResponse(agentsCommands[1]);
+
   let Agents_Position = [
     [AR1.currentPos.xPos, AR1.currentPos.yPos, AR1.currentPos.zPos],
     [AR2.currentPos.xPos, AR2.currentPos.yPos, AR2.currentPos.zPos],
   ];
-  // console.log(`CURRENT POSITION ${Agents_Position}`);
-  let agentsCommands = controller.calculateCommands(Agents_Position);
-  console.log(agentsCommands);
-  console.log(`AGENTS COMMANDS ${agentsCommands}`);
-  // Calculate the simulation
-  var AR1Position = AR1.calculateResponse(agentsCommands[0]);
-  var AR2Position = AR2.calculateResponse(agentsCommands[1]);
+  let Agents_Velocity = [AR1.currentVel, AR2.currentVel];
+  let Agents_Yaw = [AR1.currentPos.yaw, AR2.currentPos.yaw];
 
-  // Convert to global coordinate then update map
+  let newPositions = controller.calculateTargetPos(
+    Agents_Position,
+    Agents_Velocity,
+    Agents_Yaw
+  );
+
+  // Change the model Position and yaw
+  newPositions.forEach((newPosition, agentIndex) => {
+    Quads[agentIndex].currentPos = {
+      xPos: newPosition[0],
+      yPos: newPosition[1],
+      zPos: newPosition[2],
+      yaw: newPosition[3],
+    };
+    console.log("Quads", agentIndex, Quads[agentIndex].currentPos)
+  });
 
   // Update Map
-  controller.Map.addControlDataToHistory(
-    {
-      time: AR1.time,
-      xPos: AR1Position.xPos,
-      yPos: AR1Position.yPos,
-      zPos: AR1Position.zPos,
-      yaw: AR1Position.yaw,
-    },
-    0
-  );
-
-  controller.Map.addNavDataToHistory(
-    {
-      time: AR2.time,
-      xPos: AR2Position.xPos,
-      yPos: AR2Position.yPos,
-      zPos: AR2Position.zPos,
-      yaw: AR2Position.yaw,
-    },
-    0
-  );
+  newPositions.forEach((newPosition, agentIndex) => {
+    controller.Map.addControlDataToHistory(
+      {
+        time: AR1.time,
+        xPos: AR1.currentPos.xPos,
+        yPos: AR1.currentPos.yPos,
+        zPos: AR1.currentPos.zPos,
+        yaw: AR1.currentPos.yaw,
+      },
+      agentIndex
+    );
+  });
 
   // Send the position with socketIO
   socketTunnel.emit(SIMULATION_EVENT, {
     type: "SIMULATION",
     body: {
       position: [
-        { id: "Quad1", data: AR1Position },
-        { id: "Quad2", data: AR2Position },
+        { id: "Quad1", data: AR1.currentPos },
+        { id: "Quad2", data: AR2.currentPos },
       ],
       attitude: [
-        { id: "Quad1", data: { x: AR1.time, y: AR1Position.zPos } },
-        { id: "Quad2", data: { x: AR2.time, y: AR2Position.zPos } },
+        { id: "Quad1", data: { x: AR1.time, y: AR1.currentPos.zPos } },
+        { id: "Quad2", data: { x: AR2.time, y: AR2.currentPos.zPos } },
       ],
       yaw: [
-        { id: "Quad1", data: { x: AR1.time, y: AR1Position.yaw } },
-        { id: "Quad2", data: { x: AR2.time, y: AR2Position.yaw } },
+        { id: "Quad1", data: { x: AR1.time, y: AR1.currentPos.yaw } },
+        { id: "Quad2", data: { x: AR2.time, y: AR2.currentPos.yaw } },
       ],
+      APF: [
+        {id: "OPF", data: {x:0, y: 0}},
+        {id: "TPF", data: {x: 0, y: 0}}
+      ]
     },
     senderId: socketTunnel.id,
   });

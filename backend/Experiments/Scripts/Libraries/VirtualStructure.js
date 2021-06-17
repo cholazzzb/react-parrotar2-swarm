@@ -1,5 +1,10 @@
 import * as util from "./Util.js";
 
+/**
+ * NEED TO ADD INITIAL FRP
+ * @param {*} shape_type 
+ * @returns 
+ */
 function getShapePoints(shape_type) {
   let shape_points = [];
   switch (shape_type) {
@@ -16,7 +21,7 @@ function getShapePoints(shape_type) {
   return shape_points;
 }
 
-function VirtualStructure() {
+function VirtualStructure(Formation_Reference_Point) {
   /**
    * Formation
    *
@@ -29,9 +34,9 @@ function VirtualStructure() {
    */
   this.Heading_Angle = 0; // Yaw / Phi in Degree
   this.Shape_Points = getShapePoints("line"); // Agent Position from Formation Reference Point
-  this.Formation_Reference_Point = []; // Formation Reference Point
+  this.Formation_Reference_Point = Formation_Reference_Point;
   this.VS_Points = getShapePoints("line"); // Current Quadrotors Position in VS
-  this.Current_Positions = []; // Current Quadrotors Position in Real World
+  // this.Current_Positions = []; // Current Quadrotors Position in Real World
   this.Movement_Range = 0.2;
 }
 
@@ -40,35 +45,63 @@ VirtualStructure.prototype.setCurrentVSPoints = function (Current_VS_Points) {
 };
 
 VirtualStructure.prototype.calculateFRPVel = function (APFForce) {
-  return util.calculateWithVector("times", 1 / util.mass, APFForce);
+  console.log("APFForce", APFForce)
+  return util.calculateWithVector("times", 1 / util.mass, APFForce[0]);
 };
 
 VirtualStructure.prototype.calculateNewFRPPoint = function (APFForce) {
   let velocity = this.calculateFRPVel(APFForce);
+  console.log("VELOCITY", velocity)
+  velocity.forEach((velElement, velIndex) => {
+    if (velElement > this.Movement_Range) {
+      velocity[velIndex] = this.Movement_Range;
+    } else if (velElement < -this.Movement_Range) {
+      velocity[velIndex] = -this.Movement_Range;
+    }
+  });
+
+  // Update Heading
+  this.Heading_Angle = Math.atan2(velocity[1], velocity[0]);
+
+  // Transformation with Heading angle
+  velocity = util.transToQuadFrame(velocity, this.Heading_Angle);
+
+  let newFRPPoint = util.calculateWithVector(
+    "plus",
+    this.Formation_Reference_Point,
+    velocity
+  );
+
+  this.Formation_Reference_Point = newFRPPoint;
 };
 
 /**
- *
- * @param {Array of Float} FRP_Position = [xPos, yPos, zPos]
- *  calculate new VS Point based on @param FRP_Position and current heading angle
- *  with transformation matrix
- *
  * return new VS Points : [VSPoint1, VSPoint2]. VSPointx = [xPos, yPos, constant]
  */
-VirtualStructure.prototype.calculateVSPoint = function (FRP_Position) {
-  let transformationMatrix = [
-    [Math.cos(this.Heading_Angle), Math.sin(this.Heading_Angle), 0], //x
-    [-Math.sin(this.Heading_Angle), Math.cos(this.Heading_Angle), 0], //y
-    [0, 0, 1], //z. The z is constant and ignored
-  ];
-
+VirtualStructure.prototype.calculateVSPoint = function () {
   let newVSPoints = [];
   this.Shape_Points.forEach((Shape_Point) => {
-    let newVSPoint = util.transToQuadFrame(Shape_Point, this.Heading_Angle);
-    newVSPoints.push(newVSPoint);
+    let newVSPoint = util.transToWorldFrame(Shape_Point, this.Heading_Angle);
+    newVSPoints.push(
+      util.calculateWithVector(
+        "plus",
+        this.Formation_Reference_Point,
+        newVSPoint
+      )
+    );
   });
+  // console.log("NEW VS POINTS",newVSPoints)
+  return newVSPoints;
 };
 
-VirtualStructure.prototype.calculateNewVSPoint = function (APFForce) {};
+VirtualStructure.prototype.calculateNewVSPoint = function (APFForce) {
+  this.calculateNewFRPPoint(APFForce);
+  this.VS_Points = this.calculateVSPoint();
+  for(let VS_Point_Index = 0; VS_Point_Index < this.VS_Points.length; VS_Point_Index++){
+    this.VS_Points[VS_Point_Index].push(0)
+  }
+  console.log('NEWVSPOINTS', this.VS_Points)
+  return this.VS_Points;
+};
 
 export default VirtualStructure;
