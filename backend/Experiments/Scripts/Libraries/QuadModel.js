@@ -1,6 +1,7 @@
 function QuadModel(type, initialPosition, dt) {
   this.time = 0;
-  this.currentPos = initialPosition;
+  this.currentPos = initialPosition; // Position and yaw
+  this.currentVel = [0, 0];
   this.dt = dt;
 
   switch (type) {
@@ -72,7 +73,6 @@ QuadModel.prototype.calculateResponse = function (commands) {
     }
   });
 
-  console.log("current Pos (updated)", this.currentPos);
   return this.currentPos;
 };
 
