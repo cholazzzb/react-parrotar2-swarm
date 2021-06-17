@@ -118,6 +118,7 @@ const calculateDynamics = () => {
       yaw: [
         { id: "Quad1", data: { x: currentTime, y: AR1.currentPos.yaw } },
         { id: "Quad2", data: { x: currentTime, y: AR2.currentPos.yaw } },
+        { id: "VS", data: { x: currentTime, y: controller.VS.Heading_Angle } },
       ],
       APF_X: [
         { id: "OPF", data: { x: currentTime, y: controller.APF.OPF[0][0] } },

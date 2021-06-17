@@ -41,7 +41,6 @@ ArtificialPotentialField.prototype.setTargetsPosition = function (
 ArtificialPotentialField.prototype.calculateTargetsPotentialForce = function (
   Agents_Velocity
 ) {
-  console.log("----- TPF -----")
   let forces = [];
   this.Agents_Position.forEach((Agent_Position, index) => {
     let force = [0, 0, 0];
@@ -55,7 +54,6 @@ ArtificialPotentialField.prototype.calculateTargetsPotentialForce = function (
       Agent_Position,
       this.Targets_Position[0]
     );
-    console.log("distanveVector", distanceVector)
     if (distance < this.Constants.tdr) {
       let coef = -this.Parameters.ktp / this.Constants.tdr;
       force = calculateWithVector("times", coef, distanceVector);

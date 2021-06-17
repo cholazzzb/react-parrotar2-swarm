@@ -20,6 +20,7 @@ var initialState = {
   yaw: [
     { id: "parrot 1", data: [] },
     { id: "parrot 2", data: [] },
+    {id: "VS", data: []}
   ],
   APF_X: [
     { id: "OPF", data: [] },
