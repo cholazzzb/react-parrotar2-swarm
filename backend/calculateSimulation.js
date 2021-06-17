@@ -15,7 +15,7 @@ const setup = {
   ],
   obstaclesPosition: [[5, 0, 1]],
   targetsPosition: [[10, 1, 1]],
-  initialFRP : [0,0,0],
+  initialFRP: [0, 0, 0],
   mode: "simulation",
 };
 
@@ -65,12 +65,18 @@ const calculateDynamics = () => {
   let Agents_Velocity = [AR1.currentVel, AR2.currentVel];
   let Agents_Yaw = [AR1.currentPos.yaw, AR2.currentPos.yaw];
 
+  AR1.time = AR1.time + AR1.dt;
+  AR2.time = AR2.time + AR2.dt;
+
   let newPositions = controller.calculateTargetPos(
     Agents_Position,
     Agents_Velocity,
     Agents_Yaw
   );
 
+  console.log("AGENTS POSITION BEFORE", controller.APF.Agents_Position);
+  controller.APF.setAgentsPosition([controller.VS.Formation_Reference_Point]);
+  console.log("AGENTS POSITION AFTER", controller.APF.Agents_Position);
   // Change the model Position and yaw
   newPositions.forEach((newPosition, agentIndex) => {
     Quads[agentIndex].currentPos = {
@@ -79,10 +85,10 @@ const calculateDynamics = () => {
       zPos: newPosition[2],
       yaw: newPosition[3],
     };
-    console.log("Quads", agentIndex, Quads[agentIndex].currentPos)
+    console.log("Quads", agentIndex, Quads[agentIndex].currentPos);
   });
 
-  // Update Map
+  // Update Map and APF Data
   newPositions.forEach((newPosition, agentIndex) => {
     controller.Map.addControlDataToHistory(
       {
@@ -97,6 +103,7 @@ const calculateDynamics = () => {
   });
 
   // Send the position with socketIO
+  let currentTime = Math.round(AR1.time * 10) / 10;
   socketTunnel.emit(SIMULATION_EVENT, {
     type: "SIMULATION",
     body: {
@@ -105,23 +112,27 @@ const calculateDynamics = () => {
         { id: "Quad2", data: AR2.currentPos },
       ],
       attitude: [
-        { id: "Quad1", data: { x: AR1.time, y: AR1.currentPos.zPos } },
-        { id: "Quad2", data: { x: AR2.time, y: AR2.currentPos.zPos } },
+        { id: "Quad1", data: { x: currentTime, y: AR1.currentPos.zPos } },
+        { id: "Quad2", data: { x: currentTime, y: AR2.currentPos.zPos } },
       ],
       yaw: [
-        { id: "Quad1", data: { x: AR1.time, y: AR1.currentPos.yaw } },
-        { id: "Quad2", data: { x: AR2.time, y: AR2.currentPos.yaw } },
+        { id: "Quad1", data: { x: currentTime, y: AR1.currentPos.yaw } },
+        { id: "Quad2", data: { x: currentTime, y: AR2.currentPos.yaw } },
       ],
-      APF: [
-        {id: "OPF", data: {x:0, y: 0}},
-        {id: "TPF", data: {x: 0, y: 0}}
-      ]
+      APF_X: [
+        { id: "OPF", data: { x: currentTime, y: controller.APF.OPF[0][0] } },
+        { id: "TPF", data: { x: currentTime, y: controller.APF.TPF[0][0] } },
+      ],
+      APF_Y: [
+        { id: "OPF", data: { x: currentTime, y: controller.APF.OPF[0][1] } },
+        { id: "TPF", data: { x: currentTime, y: controller.APF.TPF[0][1] } },
+      ],
     },
     senderId: socketTunnel.id,
   });
 
   // END the simulation
-  if (Math.round(AR1.time) == 5) {
+  if (Math.round(AR1.time) == 10) {
     clearInterval(intervalId);
   }
 };

@@ -26,13 +26,19 @@ function useSocket(initialState, type, eventConstant) {
             incomingData.position[1].data.push({
               x: newData.body.position[1].data.xPos,
               y: newData.body.position[1].data.yPos,
+              
             });
-
             incomingData.attitude[0].data.push(newData.body.attitude[0].data);
             incomingData.attitude[1].data.push(newData.body.attitude[1].data);
 
             incomingData.yaw[0].data.push(newData.body.yaw[0].data);
             incomingData.yaw[1].data.push(newData.body.yaw[1].data);
+
+            incomingData.APF_X[0].data.push(newData.body.APF_X[0].data)
+            incomingData.APF_X[1].data.push(newData.body.APF_X[1].data)
+
+            incomingData.APF_Y[0].data.push(newData.body.APF_Y[0].data)
+            incomingData.APF_Y[1].data.push(newData.body.APF_Y[1].data)
           }
 
           break;

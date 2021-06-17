@@ -181,7 +181,6 @@ FormationControl.prototype.calculateTargetPos = function (
       Agent_Position,
       Agents_Yaw[Agent_Index]
     );
-    console.log("POSINGLOBALFRAME", posInGlobalFrame);
     let VS_Points = this.VS.VS_Points;
     let distance =
       Math.round(
@@ -191,7 +190,6 @@ FormationControl.prototype.calculateTargetPos = function (
         ) * 100
       ) / 100;
 
-    console.log("distance", distance);
     if (distance < 0.1) {
       numberQuadrotorOnVSPoint++;
     }
@@ -203,7 +201,6 @@ FormationControl.prototype.calculateTargetPos = function (
   if (numberQuadrotorOnVSPoint == 2) {
     // Calculate APF Force
     let totalAPF = this.APF.calculateTotalForce(Agents_Velocity);
-    console.log("TOTAL APF", totalAPF);
     // Get new VSPoint
     newPositions = this.VS.calculateNewVSPoint(totalAPF);
   } else {

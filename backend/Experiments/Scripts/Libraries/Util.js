@@ -34,8 +34,8 @@ export function calculateWithVector(type, operator1, operator2) {
       break;
 
     case "minus":
-      result[0] = operator1[0] + operator2[0];
-      result[1] = operator1[1] + operator2[1];
+      result[0] = operator1[0] - operator2[0];
+      result[1] = operator1[1] - operator2[1];
       result[2] = 0; // Assume Z constant
       break;
 

@@ -45,7 +45,6 @@ VirtualStructure.prototype.setCurrentVSPoints = function (Current_VS_Points) {
 };
 
 VirtualStructure.prototype.calculateFRPVel = function (APFForce) {
-  console.log("APFForce", APFForce)
   return util.calculateWithVector("times", 1 / util.mass, APFForce[0]);
 };
 
