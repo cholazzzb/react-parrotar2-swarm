@@ -16,10 +16,10 @@ function intervalControl() {
   mission1._steps = [];
 
   // Forward API
-  mission1.forward(1);
+  // mission1.forward(1);
 
   // GO API
-  // mission1.go({x: iteration, y: 0, z: 1, yaw:30})
+  mission1.go({x: 0, y: 0, z: 1, yaw:iteration*90})
   mission1.run();
 
   if (iteration == 3) {
@@ -36,10 +36,10 @@ function intervalControl2() {
   mission2._steps = [];
 
   // forward api
-  mission2.forward(1);
+  // mission2.forward(1);
 
   // GO api
-  // mission2.go({x: iteration2, y: 0, z: 1, yaw:30})
+  mission2.go({x: 0, y: 0, z: 1, yaw:iteration2*90})
 
   mission2.run();
 

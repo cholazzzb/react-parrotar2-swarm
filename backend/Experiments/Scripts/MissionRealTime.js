@@ -1,7 +1,7 @@
 import autonomy from "ardrone-autonomy";
 
 var [client1, control1, mission1] = autonomy.createMission({
-  ip: "192.168.1.2",
+  ip: "192.168.1.9",
 });
 
 var intervalId;
@@ -14,7 +14,7 @@ function intervalControl() {
   // mission1.forward(1);
 
   // go API
-  mission1.go({ x: iteration, y: 0, z: 1, yaw: 90 });
+  mission1.go({ x: 0, y: 0, z: 1, yaw: iteration*90 });
 
   mission1.run();
 
