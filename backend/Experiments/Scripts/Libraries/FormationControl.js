@@ -181,7 +181,6 @@ FormationControl.prototype.calculateTargetPos = function (
       Agent_Position,
       Agents_Yaw[Agent_Index]
     );
-    console.log("POSINGLOBALFRAME", posInGlobalFrame);
     let VS_Points = this.VS.VS_Points;
     let distance =
       Math.round(
@@ -191,7 +190,6 @@ FormationControl.prototype.calculateTargetPos = function (
         ) * 100
       ) / 100;
 
-    console.log("distance", distance);
     if (distance < 0.1) {
       numberQuadrotorOnVSPoint++;
     }
@@ -199,11 +197,15 @@ FormationControl.prototype.calculateTargetPos = function (
 
   console.log("NUMBER", numberQuadrotorOnVSPoint);
 
+  let distanceVector = util.calculateWithVector("minus", this.VS.Formation_Reference_Point, this.APF.Targets_Position[0])
+  console.log("Distance Vector", distanceVector)
+  let newHeadingAngle = Math.atan2(distanceVector[1], distanceVector[0])
+  console.log("NEW Heading Angle", newHeadingAngle)
+  this.VS.Heading_Angle = newHeadingAngle
   // Only for 2 quadrotors
   if (numberQuadrotorOnVSPoint == 2) {
     // Calculate APF Force
     let totalAPF = this.APF.calculateTotalForce(Agents_Velocity);
-    console.log("TOTAL APF", totalAPF);
     // Get new VSPoint
     newPositions = this.VS.calculateNewVSPoint(totalAPF);
   } else {

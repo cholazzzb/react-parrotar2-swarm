@@ -3,15 +3,15 @@ import * as util from "./Util.js";
 /**
  * NEED TO ADD INITIAL FRP
  * @param {*} shape_type 
- * @returns 
+ * @returns VS Position for Heading Angle 0 degree
  */
 function getShapePoints(shape_type) {
   let shape_points = [];
   switch (shape_type) {
     case "line":
       shape_points = [
-        [-0.75, 0, 1],
-        [0.75, 0, 1],
+        [0, -0.75, 1],
+        [0, 0.75, 1],
       ];
       break;
 
@@ -45,13 +45,11 @@ VirtualStructure.prototype.setCurrentVSPoints = function (Current_VS_Points) {
 };
 
 VirtualStructure.prototype.calculateFRPVel = function (APFForce) {
-  console.log("APFForce", APFForce)
   return util.calculateWithVector("times", 1 / util.mass, APFForce[0]);
 };
 
 VirtualStructure.prototype.calculateNewFRPPoint = function (APFForce) {
   let velocity = this.calculateFRPVel(APFForce);
-  console.log("VELOCITY", velocity)
   velocity.forEach((velElement, velIndex) => {
     if (velElement > this.Movement_Range) {
       velocity[velIndex] = this.Movement_Range;
@@ -82,6 +80,7 @@ VirtualStructure.prototype.calculateVSPoint = function () {
   let newVSPoints = [];
   this.Shape_Points.forEach((Shape_Point) => {
     let newVSPoint = util.transToWorldFrame(Shape_Point, this.Heading_Angle);
+    console.log("New VS Point", newVSPoint)
     newVSPoints.push(
       util.calculateWithVector(
         "plus",
