@@ -28,7 +28,7 @@ function FormationControl(setup) {
   ];
 
   setup.initialAgentsPosition.forEach((position, index) => {
-    console.log("POS", position)
+    console.log("POS", position);
     this.Map.history.xPos[index].data.push({
       x: 0,
       y: position[0],
@@ -203,16 +203,18 @@ FormationControl.prototype.calculateTargetPos = function (
     }
   });
 
+  console.log("HERE", this.VS.Formation_Reference_Point, this.APF.Targets_Position[0]);
+
   // console.log("NUMBER IN VS POINT", numberQuadrotorOnVSPoint);
   let distanceVector = util.calculateWithVector(
     "minus",
     this.VS.Formation_Reference_Point,
     this.APF.Targets_Position[0]
   );
-  // console.log("Distance Vector", distanceVector);
+  console.log("Distance Vector", distanceVector);
   let newHeadingAngle =
     Math.round(Math.atan2(distanceVector[1], distanceVector[0]) * 10) / 10;
-  // console.log("NEW Heading Angle", newHeadingAngle);
+  console.log("NEW Heading Angle", newHeadingAngle);
   this.VS.Heading_Angle = newHeadingAngle;
   // Only for 2 quadrotors
   if (numberQuadrotorOnVSPoint == 2) {
@@ -251,12 +253,12 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
     [
       this.Map.history.xVel[0].data[this.Map.history.xVel[0].data.length - 1].y,
       this.Map.history.yVel[0].data[this.Map.history.yVel[0].data.length - 1].y,
-      0
+      0,
     ],
     [
       this.Map.history.xVel[1].data[this.Map.history.xVel[1].data.length - 1].y,
       this.Map.history.yVel[1].data[this.Map.history.yVel[1].data.length - 1].y,
-      0
+      0,
     ],
   ]; // Navdata
   let Agents_Yaw = [
@@ -264,8 +266,8 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
     this.Map.history.yaw[1].data[this.Map.history.yaw[1].data.length - 1].y,
   ]; // Navdata
   console.log("pos", Agents_Position);
-  console.log("vel", Agents_Velocity)
-  console.log("yaw", Agents_Yaw)
+  console.log("vel", Agents_Velocity);
+  console.log("yaw", Agents_Yaw);
 
   this.NewAgentsTargetPos = this.calculateTargetPos(
     Agents_Position,
@@ -288,7 +290,6 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
     //   [targetX1, targetY1, targetZ1, targetYaw1],
     //   [targetX2, targetY2, targetZ2, targetYaw2],
     // ] = this.NewAgentsTargetPos;
-
     // this.quads[0]._steps = [];
     // this.quads[1]._steps = [];
     // this.quads[0].go({

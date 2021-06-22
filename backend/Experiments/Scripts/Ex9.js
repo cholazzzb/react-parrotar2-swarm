@@ -12,6 +12,7 @@ const setup = {
   ],
   obstaclesPosition: [],
   targetsPosition: [[10, 0, 1]],
+  initialFRP: [0, 0, 0],
   fileName: "Ex9Data",
   folderName: "./Experiments/Data/Ex9",
   mode: "implementation",
