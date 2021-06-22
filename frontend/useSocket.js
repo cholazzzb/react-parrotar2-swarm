@@ -6,7 +6,8 @@ const SOCKET_SERVER_URL = "http://localhost:4000";
 const NAVDATA_EVENT = "NAVDATA_EVENT";
 const COMMAND_EVENT = "COMMAND_EVENT";
 const EKF_EVENT1 = "EKF_EVENT1";
-const EKF_EVENT2 = "EKF_EVENT2"
+const EKF_EVENT2 = "EKF_EVENT2";
+const SIMULATION_EVENT = "SIMULATION_EVENT";
 
 function useSocket(type, eventConstant) {
   var initialState = {};
@@ -42,6 +43,16 @@ function useSocket(type, eventConstant) {
       };
       break;
 
+    case SIMULATION_EVENT:
+      initialState = [
+        { id: "parrot 1", data: [] },
+        { id: "parrot 2", data: [] },
+        { id: "target", data: [{ x: 10, y: 1 }] },
+        { id: "obstacle 1", data: [{ x: 5, y: 2 }] },
+      ];
+
+      break;
+
     default:
       break;
   }
@@ -53,7 +64,6 @@ function useSocket(type, eventConstant) {
     socketRef.current = socketIOClient(SOCKET_SERVER_URL, {
       query: type,
     });
-
     socketRef.current.on(eventConstant, (newData) => {
       var incomingData;
       switch (eventConstant) {
@@ -102,6 +112,22 @@ function useSocket(type, eventConstant) {
             y: newData.body.yPos,
           });
           console.log("CHECK THIS", incomingData);
+
+          break;
+
+        case SIMULATION_EVENT:
+          incomingData = [...data];
+          console.log("HMM", newData.hasOwnProperty("body"))
+          if(newData.hasOwnProperty("body")){
+            incomingData[0].data.push({
+              x: newData.body[0].data[0],
+              y: newData.body[0].data[1],
+            });
+            incomingData[1].data.push({
+              x: newData.body[1].data[0],
+              y: newData.body[1].data[1],
+            });
+          }
 
           break;
         default:

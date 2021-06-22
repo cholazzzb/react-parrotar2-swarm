@@ -1,108 +1,105 @@
-import { useState, useEffect } from "react";
-import useSocket from "../useSocket";
+import { useState } from "react";
 import Head from "next/head";
-import styles from "../styles/Home.module.css";
-import { Button, Center, Grid, GridItem } from "@chakra-ui/react";
+import {
+  Box,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  useDisclosure,
+  IconButton,
+} from "@chakra-ui/react";
+import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 
-import DroneState from "./components/DroneState";
-import EKFState from "./components/EKFState";
-import Controller from "./components/Controller";
-import QuadrotorChart from "./components/QuadrotorChart";
-import QuadrotorPosition from "./components/QuadrotorPosition";
+import QuadMonitor from "./QuadMonitor";
+import DataAnalysis from "./DataAnalysis";
+import Simulator from "./components/Simulator";
 
-// import DataProcess from "../../backend/DataProcess";
-import processedData from "../../backend/Data/1per15/target1/processedData.js"
+function Menu({ setSlide }) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-const NAVDATA_EVENT = "NAVDATA_EVENT";
-const COMMAND_EVENT = "COMMAND_EVENT";
-const EKF_EVENT1 = "EKF_EVENT1";
-const EKF_EVENT2 = "EKF_EVENT2"
+  return (
+    <>
+      <Box color="white" p="1" bgColor="gray.800">
+        <IconButton
+          variant="outline"
+          colorScheme="teal"
+          aria-label="Menu"
+          fontSize="20px"
+          onClick={onOpen}
+          icon={<HamburgerIcon />}
+        />
+      </Box>
+      <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
+        <DrawerOverlay />
+        <DrawerContent bgColor="darkslategrey" textColor="white">
+          <DrawerHeader borderBottomWidth="1px">
+            <IconButton
+              variant="outline"
+              colorScheme="teal"
+              aria-label="Menu"
+              fontSize="20px"
+              onClick={onClose}
+              icon={<CloseIcon />}
+              marginRight="2"
+            />
+            Menu
+          </DrawerHeader>
+          <DrawerBody>
+            <Box
+              as="button"
+              bg="grey"
+              w="100%"
+              p={2}
+              color="white"
+              onClick={() => setSlide(0)}
+            >
+              Controller
+            </Box>
+            <Box
+              as="button"
+              bg="tomato"
+              w="100%"
+              p={2}
+              color="white"
+              onClick={() => setSlide(1)}
+            >
+              Data
+            </Box>
+            <Box
+              as="button"
+              bg="Background"
+              w="100%"
+              p={2}
+              color="white"
+              onClick={() => setSlide(2)}
+            >
+              Simulator
+            </Box>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </>
+  );
+}
 
 export default function Home() {
-  const [slide, setSlide] = useState(0);
-  const [status, setStatus] = useState("INITIAL STATUS");
-  const [commandData, sendCommandData] = useSocket("COMMAND", COMMAND_EVENT);
-  const [navData, setNavData] = useSocket("NAVDATA", NAVDATA_EVENT);
-  const [ekfData1, setEkfData1] = useSocket("EKFDATA1", EKF_EVENT1);
-  const [ekfData2, setEkfData2] = useSocket("EKFDATA2", EKF_EVENT2)
+  const [slide, setSlide] = useState(2);
 
   return (
     <div>
+      <Head>
+        <title>React Parrot AR2 SWARM</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <Menu setSlide={setSlide} />
       {slide === 0 ? (
-        <>
-          <Head>
-            <title>React Parrot AR2 SWARM</title>
-            <link rel="icon" href="/favicon.ico" />
-          </Head>
-          <Center h="60px" color="white" bgColor="gray.800">
-            STATUS : {status}
-            <Button color="green" onClick={() => setSlide(1)}>
-              Change Slide
-            </Button>
-          </Center>
-          <Grid
-            bgColor="gray.600"
-            p="3"
-            h="1200px"
-            templateRows="repeat(3, 1fr)"
-            templateColumns="repeat(5, 1fr)"
-            gap={4}
-          >
-            <GridItem
-              bg="papayawhip"
-              borderWidth="2px"
-              borderRadius="lg"
-              colSpan={4}
-            >
-              {/* <QuadrotorPosition data={ekfData1.position} /> */}
-            </GridItem>
-            <GridItem rowSpan={2} colSpan={1}>
-              <DroneState data={navData} />
-              <EKFState data={ekfData1} />
-              <Controller sendCommandData={sendCommandData} />
-            </GridItem>
-            <GridItem colSpan={4} bg="papayawhip">
-              <QuadrotorChart data={navData.angles} yLabel="degree" />
-            </GridItem>
-            <GridItem colSpan={4} bg="papayawhip" color="black">
-              <QuadrotorChart data={navData.altitude} yLabel="meter(m)" />
-            </GridItem>
-          </Grid>
-        </>
+        <QuadMonitor />
+      ) : slide == 1 ? (
+        <DataAnalysis />
       ) : (
-        <>
-          <Button color="green" onClick={() => setSlide(0)}>
-            Change Slide
-          </Button>
-
-          <Grid
-            bgColor="gray.600"
-            p="3"
-            h="1200px"
-            templateRows="repeat(3, 1fr)"
-            templateColumns="repeat(4, 1fr)"
-            gap={4}
-          >
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.phi} yLabel="Phi" />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.phiAverage} yLabel="Phi Average" />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.theta} yLabel="Theta" />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.thetaAverage} yLabel="Theta Average" />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.psi} yLabel="Psi" />
-            </GridItem>
-            <GridItem colSpan={2} bg="papayawhip" color="black">
-              <QuadrotorChart data={processedData.psiAverage} yLabel="Psi Average" />
-            </GridItem>
-          </Grid>
-        </>
+        <Simulator />
       )}
     </div>
   );

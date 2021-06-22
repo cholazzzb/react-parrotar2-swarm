@@ -5,8 +5,8 @@ function QuadrotorChart({ data, yLabel }) {
   return (
     <ResponsiveLine
       data={data}
-      margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-      xScale={{ type: "point"}}
+      margin={{ top: 30, right: 80, bottom: 30, left: 60 }}
+      xScale={{ type: "point", min: "auto", max: "auto" }}
       yScale={{
         type: "linear",
         min: "auto",
@@ -34,9 +34,10 @@ function QuadrotorChart({ data, yLabel }) {
         legendOffset: -40,
         legendPosition: "middle",
       }}
-      colors={{ scheme: 'category10' }}
+      colors={{ scheme: "category10" }}
       pointSize={10}
-      pointColor={{ from: 'color', modifiers: [] }}      pointBorderWidth={2}
+      pointColor={{ from: "color", modifiers: [] }}
+      pointBorderWidth={2}
       pointBorderColor={{ from: "serieColor" }}
       pointLabelYOffset={-12}
       useMesh={true}
