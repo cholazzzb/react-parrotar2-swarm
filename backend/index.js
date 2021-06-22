@@ -14,6 +14,7 @@ const COMMAND_EVENT = "COMMAND_EVENT"
 const EKF_EVENT1 = "EKF_EVENT1"
 const EKF_EVENT2 = "EKF_EVENT2"
 const SIMULATION_EVENT = "SIMULATION_EVENT"
+const MARVELMIND = "MARVELMIND"
 
 io.on("connection", (socket) => {
   
@@ -52,6 +53,12 @@ io.on("connection", (socket) => {
     // console.log('---EMIT SIMULATION DATA---')
     // console.log('Data', data)
   });
+
+  socket.on(MARVELMIND, (data) => {
+    io.in(type).emit(MARVELMIND, data)
+    // console.log('---EMIT MARVELMIND DATA---')
+    // console.log("Data", data)
+  })
 
   // Leave the room if the user closes the socket
   socket.on("disconnect", () => {
