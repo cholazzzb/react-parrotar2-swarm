@@ -21,13 +21,14 @@ function FormationControl(setup) {
   let [initialAgentPosition1, initialAgentPosition2] =
     setup.initialAgentsPosition;
   initialAgentPosition1.push(0); // Yaw
-  initialAgentPosition1.push(0); // Yaw
+  initialAgentPosition2.push(0); // Yaw
   this.NewAgentsTargetPos = [
     initialAgentPosition1, // Quad1 [targetX, targetY, targetZ, targetYaw]
     initialAgentPosition2, // Quad2 [targetX, targetY, targetZ, targetYaw]
   ];
 
   setup.initialAgentsPosition.forEach((position, index) => {
+    console.log("POS", position)
     this.Map.history.xPos[index].data.push({
       x: 0,
       y: position[0],
@@ -50,7 +51,7 @@ function FormationControl(setup) {
     });
     this.Map.history.yaw[index].data.push({
       x: 0,
-      y: 0,
+      y: position[3],
     });
   });
   if (setup.mode == "implementation") {
@@ -72,33 +73,36 @@ function FormationControl(setup) {
     client1.on("navdata", (navdata) => {
       if (navdata != undefined) {
         let demo = Object(navdata.demo);
-        console.log("demo", demo);
-        this.time =
-          Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-        this.Map.addNavDataToHistory(
-          {
-            time: this.time,
-            xVel: 0,
-            yVel: 0,
-          },
-          0
-        );
+        if (demo.velocity != undefined) {
+          this.time =
+            Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+          this.Map.addNavDataToHistory(
+            {
+              time: this.time,
+              xVel: demo.velocity.x,
+              yVel: demo.velocity.y,
+            },
+            0
+          );
+        }
       }
     });
 
     client2.on("navdata", (navdata) => {
       if (navdata != undefined) {
         let demo = Object(navdata.demo);
-        this.time =
-          Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-        this.Map.addNavDataToHistory(
-          {
-            time: this.time,
-            xVel: 0,
-            yVel: 0,
-          },
-          1
-        );
+        if (demo.velocity != undefined) {
+          this.time =
+            Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+          this.Map.addNavDataToHistory(
+            {
+              time: this.time,
+              xVel: demo.velocity.x,
+              yVel: demo.velocity.y,
+            },
+            1
+          );
+        }
       }
     });
 
@@ -106,7 +110,7 @@ function FormationControl(setup) {
       if (ekfData != undefined) {
         this.time =
           Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-        this.Map.addDataControlToHistory(
+        this.Map.addControlDataToHistory(
           {
             time: this.time,
             xPos: ekfData.state.x,
@@ -243,37 +247,64 @@ var intervalNumber = 0;
 FormationControl.prototype.intervalControl = function (currentPositions) {
   intervalNumber++;
   let Agents_Position = currentPositions; // EKF
-  let Agents_Velocity = []; // Navdata
-  let Agents_Yaw = []; // Navdata
+  let Agents_Velocity = [
+    [
+      this.Map.history.xVel[0].data[this.Map.history.xVel[0].data.length - 1].y,
+      this.Map.history.yVel[0].data[this.Map.history.yVel[0].data.length - 1].y,
+      0
+    ],
+    [
+      this.Map.history.xVel[1].data[this.Map.history.xVel[1].data.length - 1].y,
+      this.Map.history.yVel[1].data[this.Map.history.yVel[1].data.length - 1].y,
+      0
+    ],
+  ]; // Navdata
+  let Agents_Yaw = [
+    this.Map.history.yaw[0].data[this.Map.history.yaw[0].data.length - 1].y,
+    this.Map.history.yaw[1].data[this.Map.history.yaw[1].data.length - 1].y,
+  ]; // Navdata
+  console.log("pos", Agents_Position);
+  console.log("vel", Agents_Velocity)
+  console.log("yaw", Agents_Yaw)
+
+  this.NewAgentsTargetPos = this.calculateTargetPos(
+    Agents_Position,
+    Agents_Velocity,
+    Agents_Yaw
+  );
+  let [
+    [targetX1, targetY1, targetZ1, targetYaw1],
+    [targetX2, targetY2, targetZ2, targetYaw2],
+  ] = this.NewAgentsTargetPos;
 
   // If Already In Agents' Target Position
   if (intervalNumber == 3) {
-    this.NewAgentsTargetPos = this.calculateTargetPos(
-      Agents_Position,
-      Agents_Velocity,
-      Agents_Yaw
-    );
-    let [
-      [targetX1, targetY1, targetZ1, targetYaw1],
-      [targetX2, targetY2, targetZ2, targetYaw2],
-    ] = this.NewAgentsTargetPos;
+    // this.NewAgentsTargetPos = this.calculateTargetPos(
+    //   Agents_Position,
+    //   Agents_Velocity,
+    //   Agents_Yaw
+    // );
+    // let [
+    //   [targetX1, targetY1, targetZ1, targetYaw1],
+    //   [targetX2, targetY2, targetZ2, targetYaw2],
+    // ] = this.NewAgentsTargetPos;
 
-    this.quads[0]._steps = [];
-    this.quads[1]._steps = [];
-    this.quads[0].go({
-      x: targetX1,
-      y: targetY1,
-      z: targetZ1,
-      yaw: targetYaw1,
-    });
-    this.quads[1].go({
-      x: targetX2,
-      y: targetY2,
-      z: targetZ2,
-      yaw: targetYaw2,
-    });
-    this.quads[0].run();
-    this.quads[1].run();
+    // this.quads[0]._steps = [];
+    // this.quads[1]._steps = [];
+    // this.quads[0].go({
+    //   x: targetX1,
+    //   y: targetY1,
+    //   z: targetZ1,
+    //   yaw: targetYaw1,
+    // });
+    // this.quads[1].go({
+    //   x: targetX2,
+    //   y: targetY2,
+    //   z: targetZ2,
+    //   yaw: targetYaw2,
+    // });
+    // this.quads[0].run();
+    // this.quads[1].run();
   }
 };
 
@@ -281,34 +312,61 @@ var iteration = 0;
 // Main Function
 FormationControl.prototype.execute = function () {
   try {
-    console.log("TakeOff");
-    this.quads[0].takeoff().zero();
-    this.quads[1].takeoff().zero();
-    this.quads[0].run();
-    this.quads[1].run();
+    // console.log("TakeOff");
+    // this.quads[0].takeoff().zero();
+    // this.quads[1].takeoff().zero();
+    // this.quads[0].run();
+    // this.quads[1].run();
     setTimeout(() => {
       this.intervalId = setInterval(() => {
-        // this.intervalControl(this.Map.currentPositions);
-        this.quads[0]._steps = [];
-        this.quads[1]._steps = [];
-        this.quads[0].go({ x: iteration, y: 0, z: 1, yaw: 0 });
-        this.quads[1].go({ x: iteration, y: 0, z: 1, yaw: 0 });
+        // iteration++
+        let currentPositions = [
+          [
+            this.Map.history.xPos[0].data[
+              this.Map.history.xPos[0].data.length - 1
+            ].y,
+            this.Map.history.yPos[0].data[
+              this.Map.history.yPos[0].data.length - 1
+            ].y,
+            this.Map.history.zPos[0].data[
+              this.Map.history.zPos[0].data.length - 1
+            ].y,
+          ],
+          [
+            this.Map.history.xPos[1].data[
+              this.Map.history.xPos[1].data.length - 1
+            ].y,
+            this.Map.history.yPos[1].data[
+              this.Map.history.yPos[1].data.length - 1
+            ].y,
+            this.Map.history.zPos[1].data[
+              this.Map.history.zPos[1].data.length - 1
+            ].y,
+          ],
+        ];
+        this.intervalControl(currentPositions);
+        // this.quads[0]._steps = [];
+        // this.quads[1]._steps = [];
+        // this.quads[0].go({ x: iteration, y: 0, z: 1, yaw: 0 });
+        // this.quads[1].go({ x: iteration, y: 0, z: 1, yaw: 0 });
+        // this.quads[0].run()
+        // this.quads[1].run()
         // Stop Condition
-        if (iteration == 5) {
+        if (intervalNumber == 5) {
           // if (Math.round(this.Map.currentPositions[0][0]) == 1) {
-          this.quads[0]._steps = [];
-          this.quads[1]._steps = [];
-          this.quads[0].land();
-          this.quads[1].land();
-          this.quads[0].run();
-          this.quads[1].run();
+          // this.quads[0]._steps = [];
+          // this.quads[1]._steps = [];
+          // this.quads[0].land();
+          // this.quads[1].land();
+          // this.quads[0].run();
+          // this.quads[1].run();
           clearInterval(this.intervalId);
 
           this.Map.saveDataHistory(this.folderName, this.fileName);
           console.log("Data Saved!");
         }
       }, 2000);
-    }, 5000);
+    }, 1000);
   } catch (error) {
     this.emergencyClients[0].land();
     this.emergencyClients[1].land();
