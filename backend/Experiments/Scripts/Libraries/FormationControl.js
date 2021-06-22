@@ -4,10 +4,6 @@ import VirtualStructure from "./VirtualStructure.js";
 import Map from "./Map.js";
 import * as util from "./Util.js";
 
-// Only for simulation
-import FakeSensor from "./FakeSensor.js";
-var posData = new FakeSensor();
-
 function FormationControl(setup) {
   this.folderName = setup.folderName;
   this.fileName = setup.fileName;
@@ -22,6 +18,14 @@ function FormationControl(setup) {
     setup.obstaclesPosition,
     setup.targetsPosition
   );
+  let [initialAgentPosition1, initialAgentPosition2] =
+    setup.initialAgentsPosition;
+  initialAgentPosition1.push(0); // Yaw
+  initialAgentPosition1.push(0); // Yaw
+  this.NewAgentsTargetPos = [
+    initialAgentPosition1, // Quad1 [targetX, targetY, targetZ, targetYaw]
+    initialAgentPosition2, // Quad2 [targetX, targetY, targetZ, targetYaw]
+  ];
 
   setup.initialAgentsPosition.forEach((position, index) => {
     this.Map.history.xPos[index].data.push({
@@ -174,7 +178,6 @@ FormationControl.prototype.calculateTargetPos = function (
 ) {
   let numberQuadrotorOnVSPoint = 0;
   let newPositions;
-
   // Check how many quads already in target VS point
   Agents_Position.forEach((Agent_Position, Agent_Index) => {
     let posInGlobalFrame = util.transToWorldFrame(
@@ -195,18 +198,22 @@ FormationControl.prototype.calculateTargetPos = function (
     }
   });
 
-  console.log("NUMBER", numberQuadrotorOnVSPoint);
-
-  let distanceVector = util.calculateWithVector("minus", this.VS.Formation_Reference_Point, this.APF.Targets_Position[0])
-  console.log("Distance Vector", distanceVector)
-  let newHeadingAngle = Math.atan2(distanceVector[1], distanceVector[0])
-  console.log("NEW Heading Angle", newHeadingAngle)
-  this.VS.Heading_Angle = newHeadingAngle
+  // console.log("NUMBER IN VS POINT", numberQuadrotorOnVSPoint);
+  let distanceVector = util.calculateWithVector(
+    "minus",
+    this.VS.Formation_Reference_Point,
+    this.APF.Targets_Position[0]
+  );
+  // console.log("Distance Vector", distanceVector);
+  let newHeadingAngle =
+    Math.round(Math.atan2(distanceVector[1], distanceVector[0]) * 10) / 10;
+  // console.log("NEW Heading Angle", newHeadingAngle);
+  this.VS.Heading_Angle = newHeadingAngle;
   // Only for 2 quadrotors
   if (numberQuadrotorOnVSPoint == 2) {
     // Calculate APF Force
     let totalAPF = this.APF.calculateTotalForce(Agents_Velocity);
-    // Get new VSPoint
+        // Get new VSPoint
     newPositions = this.VS.calculateNewVSPoint(totalAPF);
   } else {
     // Control the Quads to VS Point
@@ -230,119 +237,41 @@ FormationControl.prototype.calculateTargetPos = function (
   return newPositions;
 };
 
-FormationControl.prototype.calculateCommands = function (Agents_Position) {
-  let agentsCommands = [];
-
-  // Get Current Position and Velocity
-
-  // Calculate APF if the quadrotor already on VS Point
-  let numberQuadrotorOnVSPoint = 0;
-  Agents_Position.forEach((position, Agent_Index) => {
-    let VS_Points = this.VS.VS_Points;
-    let distance =
-      Math.round(
-        Math.sqrt(
-          (position[0] - VS_Points[Agent_Index][0]) ** 2 +
-            (position[1] - VS_Points[Agent_Index][1]) ** 2
-        ) * 100
-      ) / 100;
-
-    if (distance < 0.1) {
-      numberQuadrotorOnVSPoint++;
-    }
-  });
-
-  if (numberQuadrotorOnVSPoint == 2) {
-    // Calculate New FRP Point and VS Point with from APF
-  }
-  // Control Quadrotor to VS Points
-  else {
-    Agents_Position.forEach((position, Agent_Index) => {
-      let commands = [];
-      let command = "";
-      let commandValue = 0;
-      let currentYaw =
-        this.Map.history.yaw[0].data[this.Map.history.yaw[0].data.length - 1].y;
-      // console.log(`currentYaw ${currentYaw}`);
-
-      let VS_Points = this.VS.VS_Points;
-      // console.log(`Position ${position}`)
-      let posGlobal = util.transToWorldFrame(position, currentYaw);
-      // console.log(`POS GLOBAL ${posGlobal}`)
-      // console.log(`VS POINTS ${VS_Points}`)
-      let distanceVector = util.calculateWithVector(
-        "minus",
-        posGlobal,
-        VS_Points[Agent_Index]
-      );
-
-      // Control Yaw first
-      // console.log(`distance vector ${distanceVector}`)
-      let targetYaw = util.radToDeg(
-        Math.atan2(distanceVector[0], distanceVector[1])
-      );
-      // console.log(`targetYaw ${targetYaw}`);
-
-      let yawError = targetYaw - currentYaw;
-      console.log(`Quad ${Agent_Index} YAW ERROR ${yawError}`);
-      if (yawError > 10) {
-        commands.push(["cw", 1]);
-      } else if (yawError < -10) {
-        commands.push(["ccw", 1]);
-      } else {
-        commands.push(["cw", 0]);
-        command = "forward";
-        commandValue = 1;
-        commands.push([command, commandValue]);
-      }
-
-      agentsCommands.push(commands);
-    });
-  }
-  return agentsCommands;
-};
-
-FormationControl.prototype.runCommands = function (commands, quadIndex) {
-  commands.forEach((command) => {
-    console.log(`COMMAND ${command[0]}`);
-    switch (command[0]) {
-      case "forward":
-        this.quads[quadIndex].forward(command[1]);
-        break;
-
-      case "cw":
-        this.quads[quadIndex].cw(command[1]);
-        break;
-
-      case "ccw":
-        this.quads[quadIndex].ccw(command[1]);
-        break;
-
-      case "land":
-        this.quads[quadIndex].land();
-        break;
-
-      default:
-        break;
-    }
-  });
-  this.quads[quadIndex].run();
-};
-
 // Control Loop
 FormationControl.prototype.intervalControl = function (currentPositions) {
-  // For simulation
-  this.saveFakePosData();
+  let Agents_Position = []; // EKF
+  let Agents_Velocity = []; // Navdata
+  let Agents_Yaw = []; // Navdata
 
-  // If error, clean the mission._steps
-  this.quads[0]._steps = [];
-  this.quads[1]._steps = [];
+  // If Already In Agents' Target Position
+  if (true) {
+    this.NewAgentsTargetPos = this.calculateTargetPos(
+      Agents_Position,
+      Agents_Velocity,
+      Agents_Yaw
+    );
+    let [
+      [targetX1, targetY1, targetZ1, targetYaw1],
+      [targetX2, targetY2, targetZ2, targetYaw2],
+    ] = this.NewAgentsTargetPos;
 
-  // calculate and command the controller
-  let commands = this.calculateCommands(currentPositions);
-  // console.log(`COMMANDS ${commands}`)
-  this.runCommands(commands[0], 0);
-  this.runCommands(commands[1], 1);
+    this.quads[0]._steps = [];
+    this.quads[1]._steps = [];
+    this.quads[0].go({
+      x: targetX1,
+      y: targetY1,
+      z: targetZ1,
+      yaw: targetYaw1,
+    });
+    this.quads[1].go({
+      x: targetX2,
+      y: targetY2,
+      z: targetZ2,
+      yaw: targetYaw2,
+    });
+    this.quads[0].run();
+    this.quads[1].run();
+  }
 };
 
 // Main Function
@@ -357,8 +286,8 @@ FormationControl.prototype.execute = function () {
       this.intervalId = setInterval(() => {
         this.intervalControl(this.Map.currentPositions);
 
+        // Stop Condition
         if (Math.round(this.Map.currentPositions[0][0]) == 1) {
-          // If error, clean the mission._steps
           this.quads[0]._steps = [];
           this.quads[1]._steps = [];
           this.quads[0].land();

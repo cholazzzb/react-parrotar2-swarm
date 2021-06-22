@@ -6,15 +6,16 @@ function ArtificialPotentialField(
   Targets_Position
 ) {
   this.Constants = {
-    odr: 3,
-    tdr: 10,
+    odr: 1,
+    tdr: 1,
   };
   this.Parameters = {
-    ktvi: 1,
-    ktp: 0.9,
-    kobp1: 0.31,
-    kobp2: 0.31,
+    ktvi: 7.65,
+    ktp: 8.97,
+    kobp1: 7.93,
+    kobp2: 5.55,
   };
+
   this.Agents_Position = Agents_Position;
   this.Obstacles_Position = Obstacles_Position;
   this.Targets_Position = Targets_Position; // Only 1 Target and Assume the target is static
@@ -123,7 +124,6 @@ ArtificialPotentialField.prototype.calculateTotalForce = function (
 
   // OPF = Obstacle Potential Force
   this.OPF = this.calculateObstaclesPotentialForce();
-
   let totalAPF = [];
   this.TPF.forEach((Force, Index) => {
     let totalForce = calculateWithVector("plus", Force, this.OPF[Index]);
