@@ -26,39 +26,52 @@ export function calculateEucDistance(Pos1, Pos2) {
  */
 export function calculateWithVector(type, operator1, operator2) {
   let result = [];
+  // console.log("operator1 operator2", operator1, operator2)
   switch (type) {
     case "plus":
-      result[0] = operator1[0] + operator2[0];
-      result[1] = operator1[1] + operator2[1];
-      result[2] = 0; // Assume Z constant
+      for (let index = 0; index < operator1.length; index++) {
+        if (isNaN(operator1[index]) || isNaN(operator2[index])) {
+          console.error("NaN detected in util - plus!");
+          process.exit(1);
+        }
+        result.push(
+          Math.round((operator1[index] + operator2[index]) * 100) / 100
+        );
+      }
       break;
 
     case "minus":
-      result[0] = operator1[0] - operator2[0];
-      result[1] = operator1[1] - operator2[1];
-      result[2] = 0; // Assume Z constant
+      for (let index = 0; index < operator1.length; index++) {
+        if (isNaN(operator1[index]) || isNaN(operator2[index])) {
+          console.error("NaN detected in util - minus!");
+          process.exit(1);
+        }
+        result.push(
+          Math.round((operator1[index] - operator2[index]) * 100) / 100
+        );
+      }
       break;
 
     case "times":
-      result[0] = operator1 * operator2[0];
-      result[1] = operator1 * operator2[1];
-      result[2] = 0; // Assume Z constant
+      for (let index = 0; index < operator2.length; index++) {
+        if (isNaN(operator1) || isNaN(operator2[index])) {
+          console.error("NaN detected in util - times!");
+          process.exit(1);
+        }
+        result[index] = operator1 * operator2[index];
+      }
       break;
 
     default:
       break;
   }
 
-  result[0];
-  result[1];
-  result[2];
-
   return result;
 }
 
 export function transToWorldFrame(position, yaw) {
-  if(yaw == undefined){
-    console.error("ERROR YAW IS NEEDED IN UTIL - TransToWorldFrame")
+  if (yaw == undefined) {
+    console.error("ERROR YAW IS NEEDED IN UTIL - TransToWorldFrame");
   }
   let yawRad = degToRad(yaw);
   let transMatrix = [

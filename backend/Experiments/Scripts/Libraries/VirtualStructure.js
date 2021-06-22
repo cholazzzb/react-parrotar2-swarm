@@ -2,7 +2,7 @@ import * as util from "./Util.js";
 
 /**
  * NEED TO ADD INITIAL FRP
- * @param {*} shape_type 
+ * @param {*} shape_type
  * @returns VS Position for Heading Angle 0 degree
  */
 function getShapePoints(shape_type) {
@@ -58,12 +58,6 @@ VirtualStructure.prototype.calculateNewFRPPoint = function (APFForce) {
     }
   });
 
-  // Update Heading
-  this.Heading_Angle = Math.atan2(velocity[1], velocity[0]);
-
-  // Transformation with Heading angle
-  velocity = util.transToQuadFrame(velocity, this.Heading_Angle);
-
   let newFRPPoint = util.calculateWithVector(
     "plus",
     this.Formation_Reference_Point,
@@ -80,7 +74,6 @@ VirtualStructure.prototype.calculateVSPoint = function () {
   let newVSPoints = [];
   this.Shape_Points.forEach((Shape_Point) => {
     let newVSPoint = util.transToWorldFrame(Shape_Point, this.Heading_Angle);
-    console.log("New VS Point", newVSPoint)
     newVSPoints.push(
       util.calculateWithVector(
         "plus",
@@ -89,17 +82,20 @@ VirtualStructure.prototype.calculateVSPoint = function () {
       )
     );
   });
-  // console.log("NEW VS POINTS",newVSPoints)
   return newVSPoints;
 };
 
 VirtualStructure.prototype.calculateNewVSPoint = function (APFForce) {
   this.calculateNewFRPPoint(APFForce);
   this.VS_Points = this.calculateVSPoint();
-  for(let VS_Point_Index = 0; VS_Point_Index < this.VS_Points.length; VS_Point_Index++){
-    this.VS_Points[VS_Point_Index].push(0)
+  for (
+    let VS_Point_Index = 0;
+    VS_Point_Index < this.VS_Points.length;
+    VS_Point_Index++
+  ) {
+    this.VS_Points[VS_Point_Index].push(0);
   }
-  console.log('NEWVSPOINTS', this.VS_Points)
+  // console.log("NEW VS POINTS", this.VS_Points);
   return this.VS_Points;
 };
 

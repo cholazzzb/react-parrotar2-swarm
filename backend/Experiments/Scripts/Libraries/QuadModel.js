@@ -1,7 +1,7 @@
 function QuadModel(type, initialPosition, dt) {
   this.time = 0;
   this.currentPos = initialPosition; // Position and yaw
-  this.currentVel = [0, 0];
+  this.currentVel = [0, 0, 0];
   this.dt = dt;
 
   switch (type) {
@@ -21,7 +21,16 @@ function QuadModel(type, initialPosition, dt) {
         yaw_dot: 150, // degree/s
       };
       break;
-
+    
+      case "new":
+      let dt = this.dt
+      this.model = {
+        x_dot: 7.27(dt + 1.05*Math.exp(-0.952381 * dt) - 1.05),
+        y_dot: 7.27(dt + 1.05*Math.exp(-0.952381 * dt) - 1.05),
+        z_dot: 0.72(dt + 0.23*Math.exp(-4.34783 * dt) - 0.23),
+        yaw_dot: 2.94(dt + 0.031*Math.exp(-32.2581*dt) - 0.031)
+      }
+      break
     default:
       break;
   }

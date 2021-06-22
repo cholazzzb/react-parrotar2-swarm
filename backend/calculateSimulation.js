@@ -23,9 +23,9 @@ const controller = new FormationControl(setup);
 const AR1 = new QuadModel(
   "newModel",
   {
-    xPos: 0,
-    yPos: 0,
-    zPos: 1, //x, y, z in meter
+    xPos: setup.initialAgentsPosition[0][0],
+    yPos: setup.initialAgentsPosition[0][1],
+    zPos: setup.initialAgentsPosition[0][2], //x, y, z in meter
     yaw: 0, //degree
   },
   0.2
@@ -34,9 +34,9 @@ const AR1 = new QuadModel(
 const AR2 = new QuadModel(
   "newModel",
   {
-    xPos: 0,
-    yPos: 2,
-    zPos: 1, //x, y, z in meter
+    xPos: setup.initialAgentsPosition[1][0],
+    yPos: setup.initialAgentsPosition[1][1],
+    zPos: setup.initialAgentsPosition[1][2], //x, y, z in meter
     yaw: 0, //degree
   },
   0.2
@@ -46,7 +46,7 @@ const Quads = [AR1, AR2];
 
 var intervalId = setInterval(() => {
   calculateDynamics();
-}, 1000);
+}, 100);
 
 const calculateDynamics = () => {
   // ----- FOR USING FORWARD API, etc -----
@@ -64,7 +64,6 @@ const calculateDynamics = () => {
   ];
   let Agents_Velocity = [AR1.currentVel, AR2.currentVel];
   let Agents_Yaw = [AR1.currentPos.yaw, AR2.currentPos.yaw];
-
   AR1.time = AR1.time + AR1.dt;
   AR2.time = AR2.time + AR2.dt;
 
@@ -86,17 +85,15 @@ const calculateDynamics = () => {
       yaw: newPosition[3],
     };
     console.log("Quads", agentIndex, Quads[agentIndex].currentPos);
-  });
 
-  // Update Map and APF Data
-  newPositions.forEach((newPosition, agentIndex) => {
+    // Update Map and APF Data
     controller.Map.addControlDataToHistory(
       {
-        time: AR1.time,
-        xPos: AR1.currentPos.xPos,
-        yPos: AR1.currentPos.yPos,
-        zPos: AR1.currentPos.zPos,
-        yaw: AR1.currentPos.yaw,
+        time: Quads[agentIndex].time,
+        xPos: newPosition[0],
+        yPos: newPosition[1],
+        zPos: newPosition[2],
+        yaw: newPosition[3],
       },
       agentIndex
     );
@@ -133,7 +130,7 @@ const calculateDynamics = () => {
   });
 
   // END the simulation
-  if (Math.round(AR1.time) == 10) {
+  if (Math.round(AR1.time) == 13) {
     clearInterval(intervalId);
   }
 };

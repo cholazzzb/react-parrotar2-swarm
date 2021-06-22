@@ -8,6 +8,7 @@
     "start": "nodemon ./index.js",
     "controller": "nodemon ./controller.js",
     "calculateSimulation": "node ./calculateSimulation.js",
+    "runPSO": "node ./runPSO",
     "test": "nodemon ./delme/ekf.js",
     "fly": "nodemon ./delme/tryHover.js",
     "ex1": "node ./Experiments/Scripts/Ex1.js",
