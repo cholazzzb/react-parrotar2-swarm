@@ -19,7 +19,7 @@ const setup = {
 
 try {
   const controller = new FormationControl(setup);
-  controller.execute();
+  // controller.execute();
 } catch (error) {
   console.log(`EXPERIMENT FAILED. Error : ${error}`);
 }

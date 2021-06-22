@@ -72,6 +72,7 @@ function FormationControl(setup) {
     client1.on("navdata", (navdata) => {
       if (navdata != undefined) {
         let demo = Object(navdata.demo);
+        console.log("demo", demo);
         this.time =
           Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
         this.Map.addNavDataToHistory(
@@ -213,7 +214,7 @@ FormationControl.prototype.calculateTargetPos = function (
   if (numberQuadrotorOnVSPoint == 2) {
     // Calculate APF Force
     let totalAPF = this.APF.calculateTotalForce(Agents_Velocity);
-        // Get new VSPoint
+    // Get new VSPoint
     newPositions = this.VS.calculateNewVSPoint(totalAPF);
   } else {
     // Control the Quads to VS Point
@@ -237,14 +238,16 @@ FormationControl.prototype.calculateTargetPos = function (
   return newPositions;
 };
 
+var intervalNumber = 0;
 // Control Loop
 FormationControl.prototype.intervalControl = function (currentPositions) {
-  let Agents_Position = []; // EKF
+  intervalNumber++;
+  let Agents_Position = currentPositions; // EKF
   let Agents_Velocity = []; // Navdata
   let Agents_Yaw = []; // Navdata
 
   // If Already In Agents' Target Position
-  if (true) {
+  if (intervalNumber == 3) {
     this.NewAgentsTargetPos = this.calculateTargetPos(
       Agents_Position,
       Agents_Velocity,
@@ -274,6 +277,7 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
   }
 };
 
+var iteration = 0;
 // Main Function
 FormationControl.prototype.execute = function () {
   try {
@@ -284,10 +288,14 @@ FormationControl.prototype.execute = function () {
     this.quads[1].run();
     setTimeout(() => {
       this.intervalId = setInterval(() => {
-        this.intervalControl(this.Map.currentPositions);
-
+        // this.intervalControl(this.Map.currentPositions);
+        this.quads[0]._steps = [];
+        this.quads[1]._steps = [];
+        this.quads[0].go({ x: iteration, y: 0, z: 1, yaw: 0 });
+        this.quads[1].go({ x: iteration, y: 0, z: 1, yaw: 0 });
         // Stop Condition
-        if (Math.round(this.Map.currentPositions[0][0]) == 1) {
+        if (iteration == 5) {
+          // if (Math.round(this.Map.currentPositions[0][0]) == 1) {
           this.quads[0]._steps = [];
           this.quads[1]._steps = [];
           this.quads[0].land();
@@ -296,8 +304,8 @@ FormationControl.prototype.execute = function () {
           this.quads[1].run();
           clearInterval(this.intervalId);
 
-          // this.Map.saveDataHistory(this.folderName, this.fileName);
-          // console.log("Data Saved!");
+          this.Map.saveDataHistory(this.folderName, this.fileName);
+          console.log("Data Saved!");
         }
       }, 2000);
     }, 5000);
