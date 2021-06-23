@@ -71,7 +71,7 @@ const calculateDynamics = () => {
   console.log("Agents Vel", Agents_Velocity)
   console.log("Agents Yaw", Agents_Yaw)
 
-  let newPositions = controller.calculateTargetPos(
+  controller.calculateTargetPos(
     Agents_Position,
     Agents_Velocity,
     Agents_Yaw
@@ -81,7 +81,7 @@ const calculateDynamics = () => {
   controller.APF.setAgentsPosition([controller.VS.Formation_Reference_Point]);
   // console.log("AGENTS POSITION AFTER", controller.APF.Agents_Position);
   // Change the model Position and yaw
-  newPositions.forEach((newPosition, agentIndex) => {
+  controller.NewAgentsTargetPos.forEach((newPosition, agentIndex) => {
     Quads[agentIndex].currentPos = {
       xPos: newPosition[0],
       yPos: newPosition[1],

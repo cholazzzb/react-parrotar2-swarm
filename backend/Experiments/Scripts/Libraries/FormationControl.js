@@ -3,10 +3,36 @@ import ArtificialPotentialField from "./ArtificialPotentialField.js";
 import VirtualStructure from "./VirtualStructure.js";
 import Map from "./Map.js";
 import * as util from "./Util.js";
+import socketIOClient from "socket.io-client";
+import QuadModel from "./QuadModel.js";
+
+const SOCKET_SERVER_URL = "http://localhost:4000";
+const MARVELMIND = "MARVELMIND";
 
 function FormationControl(setup) {
   this.folderName = setup.folderName;
   this.fileName = setup.fileName;
+  let model1 = new QuadModel(
+    "newModel",
+    {
+      xPos: setup.initialAgentsPosition[0][0],
+      yPos: setup.initialAgentsPosition[0][1],
+      zPos: setup.initialAgentsPosition[0][2], //x, y, z in meter
+      yaw: 0, //degree
+    },
+    0.2
+  );
+  let model2 = new QuadModel(
+    "newModel",
+    {
+      xPos: setup.initialAgentsPosition[1][0],
+      yPos: setup.initialAgentsPosition[1][1],
+      zPos: setup.initialAgentsPosition[1][2], //x, y, z in meter
+      yaw: 0, //degree
+    },
+    0.2
+  );
+  this.currentDatas = [model1, model2];
   this.VS = new VirtualStructure(setup.initialFRP);
   this.APF = new ArtificialPotentialField(
     [setup.initialFRP],
@@ -54,7 +80,9 @@ function FormationControl(setup) {
       y: position[3],
     });
   });
-  if (setup.mode == "implementation") {
+
+  this.mode = setup.mode;
+  if (this.mode == "implementation") {
     var [client1, control1, mission1] = autonomy.createMission({
       ip: setup.ipQuad1,
     });
@@ -120,6 +148,7 @@ function FormationControl(setup) {
           },
           0
         );
+        this.quads[0].currentYaw = ekfData.state.yaw;
       }
     });
 
@@ -137,7 +166,22 @@ function FormationControl(setup) {
           },
           1
         );
+        this.quads[1].currentYaw = ekfData.state.yaw;
       }
+    });
+
+    const marvelmindTunnel = socketIOClient(SOCKET_SERVER_URL, {
+      query: MARVELMIND,
+    });
+
+    marvelmindTunnel.on(MARVELMIND, (marvelmindData) => {
+      marvelmindData.forEach((quadData, quadIndex) => {
+        this.currentDatas[quadIndex].currentPosition = [
+          quadData.xPos,
+          quadData.yPos,
+          quadData.zPos,
+        ];
+      });
     });
   }
 }
@@ -190,6 +234,7 @@ FormationControl.prototype.calculateTargetPos = function (
       Agents_Yaw[Agent_Index]
     );
     let VS_Points = this.VS.VS_Points;
+    console.log("VS POINTS", VS_Points);
     let distance =
       Math.round(
         Math.sqrt(
@@ -203,18 +248,16 @@ FormationControl.prototype.calculateTargetPos = function (
     }
   });
 
-  console.log("HERE", this.VS.Formation_Reference_Point, this.APF.Targets_Position[0]);
-
   // console.log("NUMBER IN VS POINT", numberQuadrotorOnVSPoint);
   let distanceVector = util.calculateWithVector(
     "minus",
     this.VS.Formation_Reference_Point,
     this.APF.Targets_Position[0]
   );
-  console.log("Distance Vector", distanceVector);
+  // console.log("Distance Vector", distanceVector);
   let newHeadingAngle =
     Math.round(Math.atan2(distanceVector[1], distanceVector[0]) * 10) / 10;
-  console.log("NEW Heading Angle", newHeadingAngle);
+  // console.log("NEW Heading Angle", newHeadingAngle);
   this.VS.Heading_Angle = newHeadingAngle;
   // Only for 2 quadrotors
   if (numberQuadrotorOnVSPoint == 2) {
@@ -222,33 +265,35 @@ FormationControl.prototype.calculateTargetPos = function (
     let totalAPF = this.APF.calculateTotalForce(Agents_Velocity);
     // Get new VSPoint
     newPositions = this.VS.calculateNewVSPoint(totalAPF);
+    this.NewAgentsTargetPos = newPositions;
   } else {
     // Control the Quads to VS Point
 
     // Simulation
-    newPositions = this.VS.VS_Points;
-    for (
-      let VS_Point_Index = 0;
-      VS_Point_Index < newPositions.length;
-      VS_Point_Index++
-    ) {
-      newPositions[VS_Point_Index].push(0);
+    if (this.mode == "simulation") {
+      newPositions = this.VS.VS_Points;
+      for (
+        let VS_Point_Index = 0;
+        VS_Point_Index < newPositions.length;
+        VS_Point_Index++
+      ) {
+        newPositions[VS_Point_Index].push(0);
+      }
+    } else {
+      let VS_Points = this.VS.VS_Points;
+      this.NewAgentsTargetPos = [
+        [VS_Points[0][0], VS_Points[0][1], VS_Points[0][2], 0],
+        [VS_Points[1][0], VS_Points[1][1], VS_Points[1][2], 0],
+      ];
     }
-
-    // Implementation
-    // this.quads.forEach(() => {
-
-    // })
   }
-
-  return newPositions;
 };
 
 var intervalNumber = 0;
 // Control Loop
 FormationControl.prototype.intervalControl = function (currentPositions) {
   intervalNumber++;
-  let Agents_Position = currentPositions; // EKF
+  let Agents_Position = currentPositions;
   let Agents_Velocity = [
     [
       this.Map.history.xVel[0].data[this.Map.history.xVel[0].data.length - 1].y,
@@ -262,51 +307,41 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
     ],
   ]; // Navdata
   let Agents_Yaw = [
-    this.Map.history.yaw[0].data[this.Map.history.yaw[0].data.length - 1].y,
-    this.Map.history.yaw[1].data[this.Map.history.yaw[1].data.length - 1].y,
+    this.currentDatas[0].currentYaw,
+    this.currentDatas[1].currentYaw,
   ]; // Navdata
   console.log("pos", Agents_Position);
   console.log("vel", Agents_Velocity);
   console.log("yaw", Agents_Yaw);
 
-  this.NewAgentsTargetPos = this.calculateTargetPos(
-    Agents_Position,
-    Agents_Velocity,
-    Agents_Yaw
-  );
+  this.calculateTargetPos(Agents_Position, Agents_Velocity, Agents_Yaw);
   let [
     [targetX1, targetY1, targetZ1, targetYaw1],
     [targetX2, targetY2, targetZ2, targetYaw2],
   ] = this.NewAgentsTargetPos;
 
-  // If Already In Agents' Target Position
-  if (intervalNumber == 3) {
-    // this.NewAgentsTargetPos = this.calculateTargetPos(
-    //   Agents_Position,
-    //   Agents_Velocity,
-    //   Agents_Yaw
-    // );
-    // let [
-    //   [targetX1, targetY1, targetZ1, targetYaw1],
-    //   [targetX2, targetY2, targetZ2, targetYaw2],
-    // ] = this.NewAgentsTargetPos;
-    // this.quads[0]._steps = [];
-    // this.quads[1]._steps = [];
-    // this.quads[0].go({
-    //   x: targetX1,
-    //   y: targetY1,
-    //   z: targetZ1,
-    //   yaw: targetYaw1,
-    // });
-    // this.quads[1].go({
-    //   x: targetX2,
-    //   y: targetY2,
-    //   z: targetZ2,
-    //   yaw: targetYaw2,
-    // });
-    // this.quads[0].run();
-    // this.quads[1].run();
-  }
+  console.log("TPF", this.APF.TPF);
+  console.log("FRP", this.VS.Formation_Reference_Point);
+
+  console.log("TARGET1", targetX1, targetY1, targetZ1, targetYaw1);
+  console.log("TARGET2", targetX2, targetY2, targetZ2, targetYaw2);
+
+  this.quads[0]._steps = [];
+  this.quads[1]._steps = [];
+  this.quads[0].go({
+    x: targetX1,
+    y: targetY1,
+    z: targetZ1,
+    yaw: targetYaw1,
+  });
+  this.quads[1].go({
+    x: targetX2,
+    y: targetY2,
+    z: targetZ2,
+    yaw: targetYaw2,
+  });
+  this.quads[0].run();
+  this.quads[1].run();
 };
 
 var iteration = 0;
@@ -322,29 +357,10 @@ FormationControl.prototype.execute = function () {
       this.intervalId = setInterval(() => {
         // iteration++
         let currentPositions = [
-          [
-            this.Map.history.xPos[0].data[
-              this.Map.history.xPos[0].data.length - 1
-            ].y,
-            this.Map.history.yPos[0].data[
-              this.Map.history.yPos[0].data.length - 1
-            ].y,
-            this.Map.history.zPos[0].data[
-              this.Map.history.zPos[0].data.length - 1
-            ].y,
-          ],
-          [
-            this.Map.history.xPos[1].data[
-              this.Map.history.xPos[1].data.length - 1
-            ].y,
-            this.Map.history.yPos[1].data[
-              this.Map.history.yPos[1].data.length - 1
-            ].y,
-            this.Map.history.zPos[1].data[
-              this.Map.history.zPos[1].data.length - 1
-            ].y,
-          ],
+          this.currentDatas[0].currentPosition,
+          this.currentDatas[1].currentPosition,
         ];
+        console.log("currentPositions", currentPositions);
         this.intervalControl(currentPositions);
         // this.quads[0]._steps = [];
         // this.quads[1]._steps = [];
@@ -353,7 +369,7 @@ FormationControl.prototype.execute = function () {
         // this.quads[0].run()
         // this.quads[1].run()
         // Stop Condition
-        if (intervalNumber == 5) {
+        if (intervalNumber == 10) {
           // if (Math.round(this.Map.currentPositions[0][0]) == 1) {
           // this.quads[0]._steps = [];
           // this.quads[1]._steps = [];

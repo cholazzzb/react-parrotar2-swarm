@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Head from "next/head";
 import {
@@ -15,6 +16,7 @@ import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import QuadMonitor from "./QuadMonitor";
 import DataAnalysis from "./DataAnalysis";
 import Simulator from "./components/Simulator";
+import Implementation from "./components/Implementation";
 
 function Menu({ setSlide }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -77,6 +79,16 @@ function Menu({ setSlide }) {
             >
               Simulator
             </Box>
+            <Box
+              as="button"
+              bg="powderblue"
+              w="100%"
+              p={2}
+              color="white"
+              onClick={() => setSlide(3)}
+            >
+              Implementation Data
+            </Box>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
@@ -85,7 +97,7 @@ function Menu({ setSlide }) {
 }
 
 export default function Home() {
-  const [slide, setSlide] = useState(2);
+  const [slide, setSlide] = useState(3);
 
   return (
     <div>
@@ -98,8 +110,10 @@ export default function Home() {
         <QuadMonitor />
       ) : slide == 1 ? (
         <DataAnalysis />
-      ) : (
+      ) : slide == 2 ? (
         <Simulator />
+      ) : (
+        <Implementation/>
       )}
     </div>
   );
