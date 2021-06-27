@@ -83,12 +83,18 @@ function FormationControl(setup) {
 
   this.mode = setup.mode;
   if (this.mode == "implementation") {
-    var [client1, control1, mission1] = autonomy.createMission({
-      ip: setup.ipQuad1,
-    });
-    var [client2, control2, mission2] = autonomy.createMission({
-      ip: setup.ipQuad2,
-    });
+    var [client1, control1, mission1] = autonomy.createMission(
+      {
+        ip: setup.ipQuad1,
+      },
+      0
+    );
+    var [client2, control2, mission2] = autonomy.createMission(
+      {
+        ip: setup.ipQuad2,
+      },
+      1
+    );
 
     this.emergencyClients = [client1, client2];
     console.log("Connected!");
@@ -344,46 +350,50 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
   this.quads[1].run();
 };
 
-var iteration = 0;
+var iteration = 0.7;
+var iterationStop = iteration + 1.5;
+
 // Main Function
 FormationControl.prototype.execute = function () {
   try {
-    // console.log("TakeOff");
-    // this.quads[0].takeoff().zero();
-    // this.quads[1].takeoff().zero();
-    // this.quads[0].run();
-    // this.quads[1].run();
+    console.log("TakeOff");
+    this.quads[0].takeoff();
+    this.quads[1].takeoff();
+    this.quads[0].run();
+    this.quads[1].run();
     setTimeout(() => {
       this.intervalId = setInterval(() => {
-        // iteration++
-        let currentPositions = [
-          this.currentDatas[0].currentPosition,
-          this.currentDatas[1].currentPosition,
-        ];
-        console.log("currentPositions", currentPositions);
-        this.intervalControl(currentPositions);
-        // this.quads[0]._steps = [];
-        // this.quads[1]._steps = [];
-        // this.quads[0].go({ x: iteration, y: 0, z: 1, yaw: 0 });
-        // this.quads[1].go({ x: iteration, y: 0, z: 1, yaw: 0 });
-        // this.quads[0].run()
-        // this.quads[1].run()
+        iteration = iteration + 0.5;
+        // let currentPositions = [
+        //   this.currentDatas[0].currentPosition,
+        //   this.currentDatas[1].currentPosition,
+        // ];
+        // console.log("currentPositions", currentPositions);
+        // this.intervalControl(currentPositions);
+        console.log('x Target', iteration)
+        this.quads[0]._steps = [];
+        this.quads[1]._steps = [];
+        this.quads[0].go({ x: iteration, y: 0.74, z: 0.7, yaw: 0 });
+        this.quads[1].go({ x: iteration, y: 2.34, z: 0.7, yaw: 0 });
+        this.quads[0].run();
+        this.quads[1].run();
         // Stop Condition
-        if (intervalNumber == 10) {
+        if (iteration == iterationStop) {
+          // if (intervalNumber == 10) {
           // if (Math.round(this.Map.currentPositions[0][0]) == 1) {
-          // this.quads[0]._steps = [];
-          // this.quads[1]._steps = [];
-          // this.quads[0].land();
-          // this.quads[1].land();
-          // this.quads[0].run();
-          // this.quads[1].run();
+          this.quads[0]._steps = [];
+          this.quads[1]._steps = [];
+          this.quads[0].land();
+          this.quads[1].land();
+          this.quads[0].run();
+          this.quads[1].run();
           clearInterval(this.intervalId);
 
           this.Map.saveDataHistory(this.folderName, this.fileName);
           console.log("Data Saved!");
         }
-      }, 2000);
-    }, 1000);
+      }, 3000);
+    }, 5000);
   } catch (error) {
     this.emergencyClients[0].land();
     this.emergencyClients[1].land();

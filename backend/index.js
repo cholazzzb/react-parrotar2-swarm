@@ -1,5 +1,5 @@
-import http from "http"
-import * as socketIO from "socket.io"
+import http from "http";
+import * as socketIO from "socket.io";
 
 const server = http.createServer();
 const io = new socketIO.Server(server, {
@@ -9,15 +9,35 @@ const io = new socketIO.Server(server, {
 });
 
 const PORT = 4000;
-const NAVDATA_EVENT = "NAVDATA_EVENT"
-const COMMAND_EVENT = "COMMAND_EVENT"
-const EKF_EVENT1 = "EKF_EVENT1"
-const EKF_EVENT2 = "EKF_EVENT2"
-const SIMULATION_EVENT = "SIMULATION_EVENT"
-const MARVELMIND = "MARVELMIND"
+const NAVDATA_EVENT = "NAVDATA_EVENT";
+const COMMAND_EVENT = "COMMAND_EVENT";
+const EKF_EVENT1 = "EKF_EVENT1";
+const EKF_EVENT2 = "EKF_EVENT2";
+const SIMULATION_EVENT = "SIMULATION_EVENT";
+const MARVELMIND = "MARVELMIND";
+
+const degToRad = (deg) => {
+  return (deg * Math.PI) / 180;
+};
+
+const transToQuadFrame = (position, yaw) => {
+  let yawRad = degToRad(yaw);
+  let transMatrix = [
+    [Math.cos(yawRad), Math.sin(yawRad), 0],
+    [-Math.sin(yawRad), Math.cos(yawRad), 0],
+    [0, 0, 1],
+  ];
+  let newPos = [0, 0, 0];
+  transMatrix.forEach((vector, index) => {
+    newPos[index] =
+      vector[0] * position[0] +
+      vector[1] * position[1] +
+      vector[2] * position[2];
+  });
+  return newPos;
+};
 
 io.on("connection", (socket) => {
-  
   // Join a conversation
   const { type } = socket.handshake.query;
   console.log(`Client type: ${type} -id:${socket.id} connected`);
@@ -32,8 +52,8 @@ io.on("connection", (socket) => {
 
   socket.on(COMMAND_EVENT, (data) => {
     io.in(type).emit(COMMAND_EVENT, data);
-    console.log('---EMIT DATA COMMAND---')
-    console.log('Data', data)
+    console.log("---EMIT DATA COMMAND---");
+    console.log("Data", data);
   });
 
   socket.on(EKF_EVENT1, (data) => {
@@ -55,10 +75,15 @@ io.on("connection", (socket) => {
   });
 
   socket.on(MARVELMIND, (data) => {
-    io.in(type).emit(MARVELMIND, data)
-    // console.log('---EMIT MARVELMIND DATA---')
-    // console.log("Data", data)
-  })
+    io.in(type).emit(MARVELMIND, data);
+    console.log("---EMIT MARVELMIND DATA---");
+    console.log("Data", data);
+    let newData = data[0];
+    let newPosGlobalF = [newData.xPos, newData.yPos, 0];
+
+    let newPosQuadF = transToQuadFrame(newPosGlobalF, 0);
+    console.log("MARVELMIND ON QUAD", newPosQuadF);
+  });
 
   // Leave the room if the user closes the socket
   socket.on("disconnect", () => {

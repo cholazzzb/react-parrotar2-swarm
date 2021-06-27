@@ -5,10 +5,10 @@ import FormationControl from "./Libraries/FormationControl.js";
  */
 const setup = {
   ipQuad1: "192.168.1.9",
-  ipQuad2: "192.168.1.2",
+  ipQuad2: "192.168.2.2",
   initialAgentsPosition: [
-    [0, 0, 0],
-    [0, 2, 0],
+    [0.7, 0.74, 0],
+    [0.7, 2.34, 0],
   ],
   obstaclesPosition: [],
   targetsPosition: [[10, 0, 1]],
