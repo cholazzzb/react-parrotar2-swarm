@@ -1,17 +1,17 @@
 import autonomy from "ardrone-autonomy";
 
-// var [client1, control1, mission1] = autonomy.createMission({
-//   ip: "192.168.2.2",
-// });
+var [client1, control1, mission1] = autonomy.createMission({
+  ip: "192.168.1.1",
+});
 
 var [client2, control2, mission2] = autonomy.createMission({
-  ip: "192.168.1.9",
+  ip: "192.168.2.2",
 });
 
 console.log(`Connected!`);
 
 try {
-  // client1.takeoff();
+  client1.takeoff();
   client2.takeoff();
 
   // client1.after(5000, () => {

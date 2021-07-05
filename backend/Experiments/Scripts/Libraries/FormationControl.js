@@ -5,6 +5,7 @@ import Map from "./Map.js";
 import * as util from "./Util.js";
 import socketIOClient from "socket.io-client";
 import QuadModel from "./QuadModel.js";
+import DataRecorder from "./DataRecorder.js";
 
 const SOCKET_SERVER_URL = "http://localhost:4000";
 const MARVELMIND = "MARVELMIND";
@@ -44,6 +45,8 @@ function FormationControl(setup) {
     setup.obstaclesPosition,
     setup.targetsPosition
   );
+  this.DataRecorder = new DataRecorder();
+
   let [initialAgentPosition1, initialAgentPosition2] =
     setup.initialAgentsPosition;
   initialAgentPosition1.push(0); // Yaw
@@ -98,7 +101,7 @@ function FormationControl(setup) {
 
     this.emergencyClients = [client1, client2];
     console.log("Connected!");
-
+    this.controller = [control1, control2];
     this.quads = [mission1, mission2];
     this.intervalId = "";
     this.initialTime = new Date().getTime();
@@ -154,6 +157,12 @@ function FormationControl(setup) {
           },
           0
         );
+        this.DataRecorder.addData([
+          this.time,
+          ekfData.state.x,
+          ekfData.state.y,
+          ekfData.state.z,
+        ]);
         this.quads[0].currentYaw = ekfData.state.yaw;
       }
     });
@@ -350,49 +359,46 @@ FormationControl.prototype.intervalControl = function (currentPositions) {
   this.quads[1].run();
 };
 
-var iteration = 0.7;
-var iterationStop = iteration + 1.5;
+var iteration = 0;
+var iterationStop = iteration + 5;
 
 // Main Function
 FormationControl.prototype.execute = function () {
   try {
     console.log("TakeOff");
-    this.quads[0].takeoff();
-    this.quads[1].takeoff();
-    this.quads[0].run();
-    this.quads[1].run();
+    this.emergencyClients[1].takeoff();
+    // this.emergencyClients[1].takeoff();
     setTimeout(() => {
+      this.controller[1].go({ x: 2.3, y: 1, z: 0.7 });
+      // this.controller[1].go({x: 1.3, y: 3, z:0.7})
+      // this.quads[1]._steps = [];
+      // this.quads[1].go({ x: 2, y: 2.5, z: 0.7 });
+      // this.quads[1].run();
       this.intervalId = setInterval(() => {
         iteration = iteration + 0.5;
-        // let currentPositions = [
-        //   this.currentDatas[0].currentPosition,
-        //   this.currentDatas[1].currentPosition,
-        // ];
-        // console.log("currentPositions", currentPositions);
-        // this.intervalControl(currentPositions);
-        console.log('x Target', iteration)
-        this.quads[0]._steps = [];
-        this.quads[1]._steps = [];
-        this.quads[0].go({ x: iteration, y: 0.74, z: 0.7, yaw: 0 });
-        this.quads[1].go({ x: iteration, y: 2.34, z: 0.7, yaw: 0 });
-        this.quads[0].run();
-        this.quads[1].run();
-        // Stop Condition
+        //   // let currentPositions = [
+        //   //   this.currentDatas[0].currentPosition,
+        //   //   this.currentDatas[1].currentPosition,
+        //   // ];
+        //   // console.log("currentPositions", currentPositions);
+        //   // this.intervalControl(currentPositions);
+        //   console.log('x Target', iteration)
+        //   // this.quads[0]._steps = [];
+        //   this.quads[1]._steps = [];
+        //   // this.quads[0].go({ x: iteration, y: 0.74, z: 0.7, yaw: 0 });
+        //   this.quads[1].go({ x: iteration, y: 2.05, z: 0.7, yaw: 0 });
+        //   // this.quads[0].run();
+        //   this.quads[1].run();
+        //   // Stop Condition
         if (iteration == iterationStop) {
-          // if (intervalNumber == 10) {
-          // if (Math.round(this.Map.currentPositions[0][0]) == 1) {
-          this.quads[0]._steps = [];
-          this.quads[1]._steps = [];
-          this.quads[0].land();
-          this.quads[1].land();
-          this.quads[0].run();
-          this.quads[1].run();
+          // this.quads[0].run();
+          this.emergencyClients[0].land();
           clearInterval(this.intervalId);
-
-          this.Map.saveDataHistory(this.folderName, this.fileName);
+          this.controller[0].saveData(this.folderName, this.fileName);
+          // this.Map.saveDataHistory(this.folderName, this.fileName);
           console.log("Data Saved!");
         }
-      }, 3000);
+      }, 500);
     }, 5000);
   } catch (error) {
     this.emergencyClients[0].land();
