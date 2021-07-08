@@ -25,14 +25,17 @@ PSO.prototype.calculateDynamics = function (controller, Quads) {
   AR1.time = AR1.time + AR1.dt;
   AR2.time = AR2.time + AR2.dt;
 
-  let newPositions = controller.calculateTargetPos(
+  // let newPositions = 
+  controller.calculateTargetPos(
     Agents_Position,
     Agents_Velocity,
     Agents_Yaw
   );
 
+  let newPositions = controller.NewAgentsTargetPos
   controller.APF.setAgentsPosition([controller.VS.Formation_Reference_Point]);
 
+  // console.log("NEW POSITIONS", newPositions)
   newPositions.forEach((newPosition, agentIndex) => {
     Quads[agentIndex].currentPos = {
       xPos: newPosition[0],

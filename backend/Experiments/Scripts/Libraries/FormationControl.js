@@ -57,7 +57,7 @@ function FormationControl(setup) {
   ];
 
   setup.initialAgentsPosition.forEach((position, index) => {
-    console.log("POS", position);
+    // console.log("POS", position);
     this.Map.history.xPos[index].data.push({
       x: 0,
       y: position[0],
@@ -249,7 +249,7 @@ FormationControl.prototype.calculateTargetPos = function (
       Agents_Yaw[Agent_Index]
     );
     let VS_Points = this.VS.VS_Points;
-    console.log("VS POINTS", VS_Points);
+    // console.log("VS POINTS", VS_Points);
     let distance =
       Math.round(
         Math.sqrt(
