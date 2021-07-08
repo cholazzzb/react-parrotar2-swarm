@@ -3,10 +3,37 @@ import ArtificialPotentialField from "./ArtificialPotentialField.js";
 import VirtualStructure from "./VirtualStructure.js";
 import Map from "./Map.js";
 import * as util from "./Util.js";
+import socketIOClient from "socket.io-client";
+import QuadModel from "./QuadModel.js";
+import DataRecorder from "./DataRecorder.js";
+
+const SOCKET_SERVER_URL = "http://localhost:4000";
+const MARVELMIND = "MARVELMIND";
 
 function FormationControl(setup) {
   this.folderName = setup.folderName;
   this.fileName = setup.fileName;
+  let model1 = new QuadModel(
+    "newModel",
+    {
+      xPos: setup.initialAgentsPosition[0][0],
+      yPos: setup.initialAgentsPosition[0][1],
+      zPos: setup.initialAgentsPosition[0][2], //x, y, z in meter
+      yaw: 0, //degree
+    },
+    0.2
+  );
+  let model2 = new QuadModel(
+    "newModel",
+    {
+      xPos: setup.initialAgentsPosition[1][0],
+      yPos: setup.initialAgentsPosition[1][1],
+      zPos: setup.initialAgentsPosition[1][2], //x, y, z in meter
+      yaw: 0, //degree
+    },
+    0.2
+  );
+  this.currentDatas = [model1, model2];
   this.VS = new VirtualStructure(setup.initialFRP);
   this.APF = new ArtificialPotentialField(
     [setup.initialFRP],
@@ -18,16 +45,19 @@ function FormationControl(setup) {
     setup.obstaclesPosition,
     setup.targetsPosition
   );
+  this.DataRecorder = new DataRecorder();
+
   let [initialAgentPosition1, initialAgentPosition2] =
     setup.initialAgentsPosition;
   initialAgentPosition1.push(0); // Yaw
-  initialAgentPosition1.push(0); // Yaw
+  initialAgentPosition2.push(0); // Yaw
   this.NewAgentsTargetPos = [
     initialAgentPosition1, // Quad1 [targetX, targetY, targetZ, targetYaw]
     initialAgentPosition2, // Quad2 [targetX, targetY, targetZ, targetYaw]
   ];
 
   setup.initialAgentsPosition.forEach((position, index) => {
+    // console.log("POS", position);
     this.Map.history.xPos[index].data.push({
       x: 0,
       y: position[0],
@@ -50,20 +80,28 @@ function FormationControl(setup) {
     });
     this.Map.history.yaw[index].data.push({
       x: 0,
-      y: 0,
+      y: position[3],
     });
   });
-  if (setup.mode == "implementation") {
-    var [client1, control1, mission1] = autonomy.createMission({
-      ip: setup.ipQuad1,
-    });
-    var [client2, control2, mission2] = autonomy.createMission({
-      ip: setup.ipQuad2,
-    });
+
+  this.mode = setup.mode;
+  if (this.mode == "implementation") {
+    var [client1, control1, mission1] = autonomy.createMission(
+      {
+        ip: setup.ipQuad1,
+      },
+      0
+    );
+    var [client2, control2, mission2] = autonomy.createMission(
+      {
+        ip: setup.ipQuad2,
+      },
+      1
+    );
 
     this.emergencyClients = [client1, client2];
     console.log("Connected!");
-
+    this.controller = [control1, control2];
     this.quads = [mission1, mission2];
     this.intervalId = "";
     this.initialTime = new Date().getTime();
@@ -72,32 +110,36 @@ function FormationControl(setup) {
     client1.on("navdata", (navdata) => {
       if (navdata != undefined) {
         let demo = Object(navdata.demo);
-        this.time =
-          Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-        this.Map.addNavDataToHistory(
-          {
-            time: this.time,
-            xVel: 0,
-            yVel: 0,
-          },
-          0
-        );
+        if (demo.velocity != undefined) {
+          this.time =
+            Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+          this.Map.addNavDataToHistory(
+            {
+              time: this.time,
+              xVel: demo.velocity.x,
+              yVel: demo.velocity.y,
+            },
+            0
+          );
+        }
       }
     });
 
     client2.on("navdata", (navdata) => {
       if (navdata != undefined) {
         let demo = Object(navdata.demo);
-        this.time =
-          Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-        this.Map.addNavDataToHistory(
-          {
-            time: this.time,
-            xVel: 0,
-            yVel: 0,
-          },
-          1
-        );
+        if (demo.velocity != undefined) {
+          this.time =
+            Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
+          this.Map.addNavDataToHistory(
+            {
+              time: this.time,
+              xVel: demo.velocity.x,
+              yVel: demo.velocity.y,
+            },
+            1
+          );
+        }
       }
     });
 
@@ -105,7 +147,7 @@ function FormationControl(setup) {
       if (ekfData != undefined) {
         this.time =
           Math.round((new Date().getTime() - this.initialTime) / 10, 2) / 100;
-        this.Map.addDataControlToHistory(
+        this.Map.addControlDataToHistory(
           {
             time: this.time,
             xPos: ekfData.state.x,
@@ -115,6 +157,13 @@ function FormationControl(setup) {
           },
           0
         );
+        this.DataRecorder.addData([
+          this.time,
+          ekfData.state.x,
+          ekfData.state.y,
+          ekfData.state.z,
+        ]);
+        this.quads[0].currentYaw = ekfData.state.yaw;
       }
     });
 
@@ -132,7 +181,22 @@ function FormationControl(setup) {
           },
           1
         );
+        this.quads[1].currentYaw = ekfData.state.yaw;
       }
+    });
+
+    const marvelmindTunnel = socketIOClient(SOCKET_SERVER_URL, {
+      query: MARVELMIND,
+    });
+
+    marvelmindTunnel.on(MARVELMIND, (marvelmindData) => {
+      marvelmindData.forEach((quadData, quadIndex) => {
+        this.currentDatas[quadIndex].currentPosition = [
+          quadData.xPos,
+          quadData.yPos,
+          quadData.zPos,
+        ];
+      });
     });
   }
 }
@@ -185,6 +249,7 @@ FormationControl.prototype.calculateTargetPos = function (
       Agents_Yaw[Agent_Index]
     );
     let VS_Points = this.VS.VS_Points;
+    // console.log("VS POINTS", VS_Points);
     let distance =
       Math.round(
         Math.sqrt(
@@ -213,93 +278,127 @@ FormationControl.prototype.calculateTargetPos = function (
   if (numberQuadrotorOnVSPoint == 2) {
     // Calculate APF Force
     let totalAPF = this.APF.calculateTotalForce(Agents_Velocity);
-        // Get new VSPoint
+    // Get new VSPoint
     newPositions = this.VS.calculateNewVSPoint(totalAPF);
+    this.NewAgentsTargetPos = newPositions;
   } else {
     // Control the Quads to VS Point
 
     // Simulation
-    newPositions = this.VS.VS_Points;
-    for (
-      let VS_Point_Index = 0;
-      VS_Point_Index < newPositions.length;
-      VS_Point_Index++
-    ) {
-      newPositions[VS_Point_Index].push(0);
+    if (this.mode == "simulation") {
+      newPositions = this.VS.VS_Points;
+      for (
+        let VS_Point_Index = 0;
+        VS_Point_Index < newPositions.length;
+        VS_Point_Index++
+      ) {
+        newPositions[VS_Point_Index].push(0);
+      }
+    } else {
+      let VS_Points = this.VS.VS_Points;
+      this.NewAgentsTargetPos = [
+        [VS_Points[0][0], VS_Points[0][1], VS_Points[0][2], 0],
+        [VS_Points[1][0], VS_Points[1][1], VS_Points[1][2], 0],
+      ];
     }
-
-    // Implementation
-    // this.quads.forEach(() => {
-
-    // })
   }
-
-  return newPositions;
 };
 
+var intervalNumber = 0;
 // Control Loop
 FormationControl.prototype.intervalControl = function (currentPositions) {
-  let Agents_Position = []; // EKF
-  let Agents_Velocity = []; // Navdata
-  let Agents_Yaw = []; // Navdata
+  intervalNumber++;
+  let Agents_Position = currentPositions;
+  let Agents_Velocity = [
+    [
+      this.Map.history.xVel[0].data[this.Map.history.xVel[0].data.length - 1].y,
+      this.Map.history.yVel[0].data[this.Map.history.yVel[0].data.length - 1].y,
+      0,
+    ],
+    [
+      this.Map.history.xVel[1].data[this.Map.history.xVel[1].data.length - 1].y,
+      this.Map.history.yVel[1].data[this.Map.history.yVel[1].data.length - 1].y,
+      0,
+    ],
+  ]; // Navdata
+  let Agents_Yaw = [
+    this.currentDatas[0].currentYaw,
+    this.currentDatas[1].currentYaw,
+  ]; // Navdata
+  console.log("pos", Agents_Position);
+  console.log("vel", Agents_Velocity);
+  console.log("yaw", Agents_Yaw);
 
-  // If Already In Agents' Target Position
-  if (true) {
-    this.NewAgentsTargetPos = this.calculateTargetPos(
-      Agents_Position,
-      Agents_Velocity,
-      Agents_Yaw
-    );
-    let [
-      [targetX1, targetY1, targetZ1, targetYaw1],
-      [targetX2, targetY2, targetZ2, targetYaw2],
-    ] = this.NewAgentsTargetPos;
+  this.calculateTargetPos(Agents_Position, Agents_Velocity, Agents_Yaw);
+  let [
+    [targetX1, targetY1, targetZ1, targetYaw1],
+    [targetX2, targetY2, targetZ2, targetYaw2],
+  ] = this.NewAgentsTargetPos;
 
-    this.quads[0]._steps = [];
-    this.quads[1]._steps = [];
-    this.quads[0].go({
-      x: targetX1,
-      y: targetY1,
-      z: targetZ1,
-      yaw: targetYaw1,
-    });
-    this.quads[1].go({
-      x: targetX2,
-      y: targetY2,
-      z: targetZ2,
-      yaw: targetYaw2,
-    });
-    this.quads[0].run();
-    this.quads[1].run();
-  }
+  console.log("TPF", this.APF.TPF);
+  console.log("FRP", this.VS.Formation_Reference_Point);
+
+  console.log("TARGET1", targetX1, targetY1, targetZ1, targetYaw1);
+  console.log("TARGET2", targetX2, targetY2, targetZ2, targetYaw2);
+
+  this.quads[0]._steps = [];
+  this.quads[1]._steps = [];
+  this.quads[0].go({
+    x: targetX1,
+    y: targetY1,
+    z: targetZ1,
+    yaw: targetYaw1,
+  });
+  this.quads[1].go({
+    x: targetX2,
+    y: targetY2,
+    z: targetZ2,
+    yaw: targetYaw2,
+  });
+  this.quads[0].run();
+  this.quads[1].run();
 };
+
+var iteration = 0;
+var iterationStop = iteration + 5;
 
 // Main Function
 FormationControl.prototype.execute = function () {
   try {
     console.log("TakeOff");
-    this.quads[0].takeoff().zero();
-    this.quads[1].takeoff().zero();
-    this.quads[0].run();
-    this.quads[1].run();
+    this.emergencyClients[1].takeoff();
+    // this.emergencyClients[1].takeoff();
     setTimeout(() => {
+      this.controller[1].go({ x: 2.3, y: 1, z: 0.7 });
+      // this.controller[1].go({x: 1.3, y: 3, z:0.7})
+      // this.quads[1]._steps = [];
+      // this.quads[1].go({ x: 2, y: 2.5, z: 0.7 });
+      // this.quads[1].run();
       this.intervalId = setInterval(() => {
-        this.intervalControl(this.Map.currentPositions);
-
-        // Stop Condition
-        if (Math.round(this.Map.currentPositions[0][0]) == 1) {
-          this.quads[0]._steps = [];
-          this.quads[1]._steps = [];
-          this.quads[0].land();
-          this.quads[1].land();
-          this.quads[0].run();
-          this.quads[1].run();
+        iteration = iteration + 0.5;
+        //   // let currentPositions = [
+        //   //   this.currentDatas[0].currentPosition,
+        //   //   this.currentDatas[1].currentPosition,
+        //   // ];
+        //   // console.log("currentPositions", currentPositions);
+        //   // this.intervalControl(currentPositions);
+        //   console.log('x Target', iteration)
+        //   // this.quads[0]._steps = [];
+        //   this.quads[1]._steps = [];
+        //   // this.quads[0].go({ x: iteration, y: 0.74, z: 0.7, yaw: 0 });
+        //   this.quads[1].go({ x: iteration, y: 2.05, z: 0.7, yaw: 0 });
+        //   // this.quads[0].run();
+        //   this.quads[1].run();
+        //   // Stop Condition
+        if (iteration == iterationStop) {
+          // this.quads[0].run();
+          this.emergencyClients[0].land();
           clearInterval(this.intervalId);
-
+          this.controller[0].saveData(this.folderName, this.fileName);
           // this.Map.saveDataHistory(this.folderName, this.fileName);
-          // console.log("Data Saved!");
+          console.log("Data Saved!");
         }
-      }, 2000);
+      }, 500);
     }, 5000);
   } catch (error) {
     this.emergencyClients[0].land();

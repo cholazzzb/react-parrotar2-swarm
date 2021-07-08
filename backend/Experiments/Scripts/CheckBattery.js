@@ -1,11 +1,11 @@
 import autonomy from "ardrone-autonomy";
 
 var [client1, control1, mission1] = autonomy.createMission({
-  ip: "192.168.1.2",
+  ip: "192.168.2.2",
 });
 
 var [client2, control2, mission2] = autonomy.createMission({
-  ip: "192.168.1.9",
+  ip: "192.168.1.1",
 });
 
 client1.on("navdata", (navdata) => {
@@ -18,6 +18,7 @@ client1.on("navdata", (navdata) => {
 client2.on("navdata", (navdata) => {
   if (navdata != undefined) {
     let demo = Object(navdata.demo);
-    console.log(`(ip: .9) Battery : ${demo.batteryPercentage}`);
+    console.log(`(ip: .1) Battery : ${demo.batteryPercentage}`);
+    // console.log("yaw", demo.rotation)
   }
 });

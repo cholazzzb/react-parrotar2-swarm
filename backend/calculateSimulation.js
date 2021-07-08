@@ -67,24 +67,28 @@ const calculateDynamics = () => {
   AR1.time = AR1.time + AR1.dt;
   AR2.time = AR2.time + AR2.dt;
 
-  let newPositions = controller.calculateTargetPos(
+  console.log("Agents Pos", Agents_Position)
+  console.log("Agents Vel", Agents_Velocity)
+  console.log("Agents Yaw", Agents_Yaw)
+
+  controller.calculateTargetPos(
     Agents_Position,
     Agents_Velocity,
     Agents_Yaw
   );
 
-  console.log("AGENTS POSITION BEFORE", controller.APF.Agents_Position);
+  // console.log("AGENTS POSITION BEFORE", controller.APF.Agents_Position);
   controller.APF.setAgentsPosition([controller.VS.Formation_Reference_Point]);
-  console.log("AGENTS POSITION AFTER", controller.APF.Agents_Position);
+  // console.log("AGENTS POSITION AFTER", controller.APF.Agents_Position);
   // Change the model Position and yaw
-  newPositions.forEach((newPosition, agentIndex) => {
+  controller.NewAgentsTargetPos.forEach((newPosition, agentIndex) => {
     Quads[agentIndex].currentPos = {
       xPos: newPosition[0],
       yPos: newPosition[1],
       zPos: newPosition[2],
       yaw: newPosition[3],
     };
-    console.log("Quads", agentIndex, Quads[agentIndex].currentPos);
+    // console.log("Quads", agentIndex, Quads[agentIndex].currentPos);
 
     // Update Map and APF Data
     controller.Map.addControlDataToHistory(

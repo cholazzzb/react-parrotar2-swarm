@@ -23,12 +23,15 @@
     "ex10": "node ./Experiments/Scripts/Ex10.js",
     "ex11": "node ./Experiments/Scripts/Ex11.js",
     "ex12": "node ./Experiments/Scripts/Ex12.js",
+    "quad1": "node ./Experiments/Scripts/Quad1.js",
+    "quad2": "node ./Experiments/Scripts/Quad2.js",
     "land": "node ./Experiments/Scripts/Land.js",
     "checkBattery": "node ./Experiments/Scripts/CheckBattery.js",
     "calibrate": "node ./Experiments/Scripts/Calibrate.js",
     "realTime": "node ./Experiments/Scripts/MissionRealTime.js",
     "realTime2": "node ./Experiments/Scripts/MissionRealTime2.js",
-    "testVS": "node ./Experiments/Scripts/Libraries/test_VirtualStructure.js"
+    "testVS": "node ./Experiments/Scripts/Libraries/test_VirtualStructure.js",
+    "tweakControl": "node ./Experiments/Scripts/TweakControl.js"
   },
   "author": "Nicholas Biantoro",
   "dependencies": {
