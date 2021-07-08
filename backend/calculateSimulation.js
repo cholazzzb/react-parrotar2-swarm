@@ -13,9 +13,10 @@ const setup = {
     [0, 0, 1],
     [0, 2, 1],
   ],
-  obstaclesPosition: [[5, 0, 1]],
-  targetsPosition: [[10, 1, 1]],
-  initialFRP: [0, 0, 0],
+  // Dont' forget to change the position in Simulator manually
+  obstaclesPosition: [[2, 1, 1]],
+  targetsPosition: [[10, 1.5, 1]],
+  initialFRP: [0, 1.5, 0],
   mode: "simulation",
 };
 
@@ -46,7 +47,7 @@ const Quads = [AR1, AR2];
 
 var intervalId = setInterval(() => {
   calculateDynamics();
-}, 100);
+}, 500);
 
 const calculateDynamics = () => {
   // ----- FOR USING FORWARD API, etc -----
@@ -134,7 +135,7 @@ const calculateDynamics = () => {
   });
 
   // END the simulation
-  if (Math.round(AR1.time) == 13) {
+  if (Math.round(AR1.time) == 12) {
     clearInterval(intervalId);
   }
 };

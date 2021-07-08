@@ -96,6 +96,7 @@ ArtificialPotentialField.prototype.calculateObstaclesPotentialForce =
           Agent_Position,
           Obstacle_Position
         );
+        console.log("Distance APF OPF", distance, Agent_Position, Obstacle_Position)
         let distanceVectorUnit = calculateWithVector(
           "times",
           1 / distance,

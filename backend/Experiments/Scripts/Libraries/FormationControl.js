@@ -48,7 +48,7 @@ function FormationControl(setup) {
   this.DataRecorder = new DataRecorder();
 
   let [initialAgentPosition1, initialAgentPosition2] =
-    setup.initialAgentsPosition;
+    [...setup.initialAgentsPosition];
   initialAgentPosition1.push(0); // Yaw
   initialAgentPosition2.push(0); // Yaw
   this.NewAgentsTargetPos = [
@@ -248,8 +248,8 @@ FormationControl.prototype.calculateTargetPos = function (
       Agent_Position,
       Agents_Yaw[Agent_Index]
     );
-    let VS_Points = this.VS.VS_Points;
-    // console.log("VS POINTS", VS_Points);
+    let VS_Points = [...this.VS.VS_Points];
+    console.log("VS POINTS", VS_Points);
     let distance =
       Math.round(
         Math.sqrt(
@@ -263,7 +263,7 @@ FormationControl.prototype.calculateTargetPos = function (
     }
   });
 
-  // console.log("NUMBER IN VS POINT", numberQuadrotorOnVSPoint);
+  console.log("NUMBER IN VS POINT", numberQuadrotorOnVSPoint);
   let distanceVector = util.calculateWithVector(
     "minus",
     this.VS.Formation_Reference_Point,
@@ -285,22 +285,11 @@ FormationControl.prototype.calculateTargetPos = function (
     // Control the Quads to VS Point
 
     // Simulation
-    if (this.mode == "simulation") {
-      newPositions = this.VS.VS_Points;
-      for (
-        let VS_Point_Index = 0;
-        VS_Point_Index < newPositions.length;
-        VS_Point_Index++
-      ) {
-        newPositions[VS_Point_Index].push(0);
-      }
-    } else {
-      let VS_Points = this.VS.VS_Points;
+    let VS_Points = [...this.VS.VS_Points];
       this.NewAgentsTargetPos = [
         [VS_Points[0][0], VS_Points[0][1], VS_Points[0][2], 0],
         [VS_Points[1][0], VS_Points[1][1], VS_Points[1][2], 0],
       ];
-    }
   }
 };
 
