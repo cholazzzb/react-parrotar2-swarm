@@ -10,8 +10,8 @@ var initialState = {
   position: [
     { id: "parrot 1", data: [] },
     { id: "parrot 2", data: [] },
-    { id: "target", data: [{ x: 10, y: 1 }] },
-    { id: "obstacle 1", data: [{ x: 5, y: 2 }] },
+    { id: "target", data: [{ x: 10, y: 1.5 }] },
+    { id: "obstacle", data: [{ x: 3, y: 0 }] },
   ],
   attitude: [
     { id: "parrot 1", data: [] },

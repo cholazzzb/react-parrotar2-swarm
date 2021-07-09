@@ -97,7 +97,7 @@ function Menu({ setSlide }) {
 }
 
 export default function Home() {
-  const [slide, setSlide] = useState(3);
+  const [slide, setSlide] = useState(2);
 
   return (
     <div>
