@@ -14,7 +14,7 @@ const setup = {
     [0, 2, 1],
   ],
   // Dont' forget to change the position in Simulator manually
-  obstaclesPosition: [[2, 1, 1]],
+  obstaclesPosition: [[3, 0, 1]],
   targetsPosition: [[10, 1.5, 1]],
   initialFRP: [0, 1.5, 0],
   mode: "simulation",
